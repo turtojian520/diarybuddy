@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh" className={`h-full ${notoSerifSC.variable}`}>
-      <body className="min-h-full">
+    <html lang="zh" className={notoSerifSC.variable}>
+      <body>
         <TopNav />
         {children}
       </body>

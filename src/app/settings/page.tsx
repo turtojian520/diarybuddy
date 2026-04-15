@@ -1,31 +1,113 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Check, Plus, Archive, Trash2, ArrowLeft, AlertTriangle } from 'lucide-react'
-import { getAllDiaryEntries } from '@/lib/actions'
+import { ArrowLeft, Archive, Trash2, AlertTriangle, Loader2, Check } from 'lucide-react'
+import { getAllDiaryEntries, getTemplates, createTemplate, updateTemplate } from '@/lib/actions'
+import type { DiaryTemplate } from '@/lib/supabase'
 
-const templates = ['学术回顾', '每日反思', '极简笔记']
+const DEFAULT_PROMPT = `你是一位专业的 AI 日记助手。用户在一天中记录了多条碎片化的想法和笔记。
+请根据这些内容，执行以下四项任务：
+
+1. **完整日记（改写重组）**：
+   收集用户一天内的全部想法和笔记，根据这些内容写一个完整版的日记。
+   要有更好的格式和逻辑结构，更好的写作水平同时不改变日记的原意。
+   - 使用 \`# 📝 [日期]完整日记：[主题标题]\` 作为一级标题
+   - 按主题分为 3~5 个板块，使用罗马数字编号（I, II, III…），每个板块用 \`###\` 三级标题
+   - 将口语化内容重组为流畅的叙述文
+   - 保留原意，提升文字质量
+
+2. **关键要点总结**：
+   以 \`## ✨ 关键要点总结\` 为标题，列出 5-7 条编号的关键要点，
+   每条用一句话概括一个重要事件、决策或感悟。
+
+3. **人生导师洞察与建议**：
+   以 \`## 🧠 人生导师的洞察与建议：[洞察标题]\` 为标题，
+   作为心理专家/人生导师的角色对用户的一天做出分析。
+   包含「重要洞察」（2-3 条深度分析）和「导师建议」（2-3 条可执行建议）。
+
+4. **待办事项列表**：
+   以 \`## ✅ 我的待办事项列表\` 为标题，
+   用第一人称写一份按领域分类的待办清单。
+   使用 \`- [ ]\` 格式，每条配合 **【任务名称】** 加粗标签。
+
+请严格按照上述四个部分的顺序输出，使用 Markdown 格式，专业术语可使用 LaTeX 格式（$\\text{...}$）。
+不要添加任何额外的解释性文字。`
 
 export default function SettingsPage() {
-  const [activeTemplate, setActiveTemplate] = useState('学术回顾')
+  // ── Prompt template state ─────────────────────────────────────────────────
+  const [templateId, setTemplateId] = useState<string | null>(null)
+  const [prompt, setPrompt] = useState(DEFAULT_PROMPT)
+  const [savedPrompt, setSavedPrompt] = useState(DEFAULT_PROMPT)
+  const [loadingPrompt, setLoadingPrompt] = useState(true)
+  const [savingPrompt, setSavingPrompt] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [promptError, setPromptError] = useState('')
+
+  // ── Data management state ─────────────────────────────────────────────────
   const [isExporting, setIsExporting] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [statusMsg, setStatusMsg] = useState('')
 
+  // Load template from Supabase on mount
+  useEffect(() => {
+    getTemplates()
+      .then((list) => {
+        if (list.length > 0) {
+          setTemplateId(list[0].id)
+          setPrompt(list[0].prompt)
+          setSavedPrompt(list[0].prompt)
+        }
+        // If empty, show DEFAULT_PROMPT in editor but don't auto-save
+      })
+      .catch(() => {})
+      .finally(() => setLoadingPrompt(false))
+  }, [])
+
+  async function handleSavePrompt() {
+    if (!prompt.trim()) {
+      setPromptError('提示词不能为空。')
+      return
+    }
+    setSavingPrompt(true)
+    setPromptError('')
+    setSaveSuccess(false)
+    try {
+      let saved: DiaryTemplate
+      if (templateId) {
+        saved = await updateTemplate(templateId, { prompt: prompt.trim() })
+      } else {
+        saved = await createTemplate('默认模板', '', prompt.trim())
+        setTemplateId(saved.id)
+      }
+      setSavedPrompt(saved.prompt)
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 2500)
+    } catch (err) {
+      setPromptError(err instanceof Error ? err.message : '保存失败，请重试。')
+    } finally {
+      setSavingPrompt(false)
+    }
+  }
+
+  function handleReset() {
+    setPrompt(DEFAULT_PROMPT)
+    setPromptError('')
+  }
+
+  const isDirty = prompt !== savedPrompt
+
+  // ── Export ────────────────────────────────────────────────────────────────
   async function handleExport() {
     setIsExporting(true)
     setStatusMsg('')
     try {
       const entries = await getAllDiaryEntries()
-      if (entries.length === 0) {
-        setStatusMsg('暂无日记可导出。')
-        return
-      }
+      if (entries.length === 0) { setStatusMsg('暂无日记可导出。'); return }
 
       const allContent = entries
-        .map((entry) => {
-          const sections = [
+        .map((entry) =>
+          [
             `# ${entry.title}`,
             `**日期：** ${entry.session_date}`,
             '',
@@ -45,8 +127,7 @@ export default function SettingsPage() {
           ]
             .filter((s) => s !== undefined)
             .join('\n')
-          return sections
-        })
+        )
         .join('\n\n\n===\n\n\n')
 
       const blob = new Blob([allContent], { type: 'text/markdown;charset=utf-8' })
@@ -83,45 +164,70 @@ export default function SettingsPage() {
         </header>
 
         <div className="space-y-16 sm:space-y-20">
-          {/* 模板选择 */}
-          <section>
-            <h2 className="mb-8 text-2xl italic text-[#4A4A4A]">日记模板</h2>
 
-            <div className="space-y-4 sm:space-y-6">
-              {templates.map((template) => {
-                const isActive = template === activeTemplate
-                return (
-                  <button
-                    key={template}
-                    type="button"
-                    onClick={() => setActiveTemplate(template)}
-                    className="group flex w-full items-center justify-between border-b border-[#EAE1D3] pb-4 text-left"
-                  >
-                    <span
-                      className={`text-lg transition-colors sm:text-xl ${
-                        isActive ? 'text-[#2B2A27]' : 'text-[#6B5C4C] group-hover:text-[#4A4A4A]'
-                      }`}
+          {/* ── 日记模板 ── */}
+          <section>
+            <div className="mb-6 flex items-end justify-between">
+              <div>
+                <h2 className="text-2xl italic text-[#4A4A4A]">日记模板</h2>
+                <p className="mt-1 text-sm italic text-[#8C7B6A]">
+                  生成日记时发送给 AI 的系统指令，可直接编辑。
+                </p>
+              </div>
+              {!loadingPrompt && (
+                <div className="flex items-center gap-3">
+                  {isDirty && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="text-xs text-[#8C7B6A] hover:text-[#4A4A4A]"
                     >
-                      {template}
-                    </span>
-                    {isActive ? (
-                      <Check className="h-5 w-5 text-[#D4A373]" />
+                      重置默认
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleSavePrompt}
+                    disabled={savingPrompt || (!isDirty && templateId !== null)}
+                    className="flex items-center gap-1.5 rounded-full bg-[#D4A373] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[#C39363] disabled:opacity-40"
+                  >
+                    {savingPrompt ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : saveSuccess ? (
+                      <Check className="h-3.5 w-3.5" />
                     ) : null}
+                    {saveSuccess ? '已保存' : '保存'}
                   </button>
-                )
-              })}
+                </div>
+              )}
             </div>
 
-            <button
-              type="button"
-              className="group mt-8 flex items-center space-x-2 rounded px-2 py-1 text-[#8C7B6A] transition-colors hover:text-[#D4A373]"
-            >
-              <Plus className="h-4 w-4" />
-              <span className="text-sm uppercase tracking-wider">创建模板</span>
-            </button>
+            {loadingPrompt ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="h-6 w-6 animate-spin text-[#D4A373]" />
+              </div>
+            ) : (
+              <>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => { setPrompt(e.target.value); setPromptError('') }}
+                  rows={22}
+                  className="w-full resize-y rounded-2xl border border-[#EAE1D3] bg-[#F6F3EE] px-5 py-4 font-mono text-sm leading-relaxed text-[#4A4A4A] outline-none transition-colors focus:border-[#D4A373] focus:ring-1 focus:ring-[#D4A373]/30"
+                  spellCheck={false}
+                />
+                {promptError && (
+                  <p className="mt-2 text-xs text-red-500">{promptError}</p>
+                )}
+                {!templateId && !isDirty && (
+                  <p className="mt-2 text-xs italic text-[#B4AC9F]">
+                    当前显示的是默认指令，编辑后点击「保存」即可存入数据库。
+                  </p>
+                )}
+              </>
+            )}
           </section>
 
-          {/* 数据管理 */}
+          {/* ── 数据与归档 ── */}
           <section>
             <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">数据与归档</h2>
             <p className="mb-10 max-w-md text-sm italic leading-relaxed text-[#8C7B6A]">
@@ -191,7 +297,7 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* 关于 */}
+          {/* ── 关于 ── */}
           <section>
             <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">关于</h2>
             <div className="space-y-2 text-sm text-[#8C7B6A]">

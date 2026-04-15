@@ -24,3 +24,13 @@ export type DiaryEntry = {
   generated_at: string
   is_highlighted: boolean
 }
+
+export type DiaryTemplate = {
+  id: string
+  user_id: string
+  name: string
+  description: string
+  prompt: string        // Custom instructions injected into the AI prompt
+  created_at: string
+  updated_at: string
+}

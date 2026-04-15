@@ -1,13 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Mic, Paperclip, Sparkles, BookText, ArrowRight, Settings, Trash2, Loader2 } from 'lucide-react'
 import { addFragment, getFragmentsByDate, deleteFragment } from '@/lib/actions'
 import { getTodayDate } from '@/lib/utils'
 import type { DiaryFragment } from '@/lib/supabase'
 
 export default function WorkspacePage() {
+  return (
+    <Suspense>
+      <WorkspaceContent />
+    </Suspense>
+  )
+}
+
+function WorkspaceContent() {
   const [fragments, setFragments] = useState<DiaryFragment[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -15,18 +24,39 @@ export default function WorkspacePage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [todayDate, setTodayDate] = useState('')
   const [displayDate, setDisplayDate] = useState('')
+  const [diaryGenerated, setDiaryGenerated] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const date = getTodayDate()
-    setTodayDate(date)
+    // If a ?date= param is provided (e.g. to restore yesterday's view), use it.
+    // Otherwise, read the session date stored at session start so midnight doesn't
+    // silently flip the workspace to a new day while the user is still writing.
+    const paramDate = searchParams.get('date')
+    let sessionDate: string
 
-    const [year, month, day] = date.split('-').map(Number)
+    if (paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)) {
+      // Explicit date requested via URL – use it and persist it as the session date.
+      sessionDate = paramDate
+      sessionStorage.setItem('workspaceSessionDate', sessionDate)
+    } else {
+      // No URL param: use the stored session date if it exists, otherwise seed it
+      // with today's real date and save it so midnight won't change it.
+      const stored = sessionStorage.getItem('workspaceSessionDate')
+      sessionDate = stored ?? getTodayDate()
+      if (!stored) {
+        sessionStorage.setItem('workspaceSessionDate', sessionDate)
+      }
+    }
+
+    setTodayDate(sessionDate)
+
+    const [year, month, day] = sessionDate.split('-').map(Number)
     const d = new Date(year, month - 1, day)
     setDisplayDate(d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }))
 
-    loadFragments(date)
-  }, [])
+    loadFragments(sessionDate)
+  }, [searchParams])
 
   async function loadFragments(date: string) {
     try {
@@ -83,7 +113,14 @@ export default function WorkspacePage() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error ?? '生成失败')
 
-      window.location.href = '/preview'
+      // Diary saved successfully: advance the workspace session to today's real date
+      // so the next time the user opens the workspace they start fresh on today.
+      const realToday = getTodayDate()
+      sessionStorage.setItem('workspaceSessionDate', realToday)
+      setDiaryGenerated(true)
+
+      // Pass the date so preview loads the correct entry (not always "today")
+      window.location.href = `/preview?date=${todayDate}`
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : '日记生成失败，请检查 API 密钥。')
       setIsGenerating(false)
@@ -150,7 +187,25 @@ export default function WorkspacePage() {
         <header className="flex flex-col gap-6 border-b border-[#EAE1D3] py-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="mb-2 text-3xl font-normal text-[#2B2A27] sm:text-4xl">{displayDate}</h2>
-            <p className="text-sm italic text-[#8C7B6A]">静静地记录你的想法……</p>
+            <p className="text-sm italic text-[#8C7B6A]">
+              {todayDate !== getTodayDate()
+                ? `正在查看 ${displayDate} 的工作台 · `
+                : ''}
+              静静地记录你的想法……
+            </p>
+            {todayDate !== getTodayDate() && (
+              <button
+                type="button"
+                onClick={() => {
+                  const realToday = getTodayDate()
+                  sessionStorage.setItem('workspaceSessionDate', realToday)
+                  window.location.href = '/'
+                }}
+                className="mt-2 text-xs text-[#D4A373] underline underline-offset-2 hover:text-[#C39363]"
+              >
+                切换到今天 ({getTodayDate()})
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -161,7 +216,7 @@ export default function WorkspacePage() {
               浏览归档
             </Link>
             <Link
-              href="/preview"
+              href={`/preview?date=${todayDate || getTodayDate()}`}
               className="inline-flex items-center gap-2 rounded-full bg-[#2B2A27] px-4 py-2 text-sm text-white transition-colors hover:bg-[#45423d]"
             >
               <BookText className="h-4 w-4" />

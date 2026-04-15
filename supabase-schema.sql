@@ -66,10 +66,35 @@ create policy "Users can delete their own entries"
   using (auth.uid() = user_id);
 
 -- ============================================================
--- STEP 5 (optional): Backfill existing rows if you have data
---   Replace '<your-user-id>' with your actual auth.users UUID.
---   Find it in: Supabase Dashboard → Authentication → Users
+-- STEP 6: diary_templates table
+--   Stores user-defined AI prompt templates.
 -- ============================================================
 
--- update diary_fragments set user_id = '<your-user-id>' where user_id is null;
--- update diary_entries  set user_id = '<your-user-id>' where user_id is null;
+create table if not exists diary_templates (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade not null default auth.uid(),
+  name        text not null,
+  description text not null default '',
+  prompt      text not null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table diary_templates enable row level security;
+
+create policy "Users can select their own templates"
+  on diary_templates for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own templates"
+  on diary_templates for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own templates"
+  on diary_templates for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own templates"
+  on diary_templates for delete
+  using (auth.uid() = user_id);

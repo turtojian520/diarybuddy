@@ -85,9 +85,6 @@ export default function HistoryPage() {
             <div className="space-y-10 sm:space-y-12">
               {filteredEntries.map((entry) => {
                 const { display, weekday } = formatEntryDate(entry.session_date)
-                const preview = entry.key_points
-                  ? entry.key_points.split('\n').find((l) => l.trim())?.replace(/^\d+\.\s*\*\*.*?\*\*:\s*/, '') ?? ''
-                  : entry.full_diary.split('\n').find((l) => l.trim() && !l.startsWith('#'))?.substring(0, 120) ?? ''
 
                 return (
                   <Link
@@ -109,9 +106,6 @@ export default function HistoryPage() {
                         <h4 className="mb-3 text-xl text-[#4A4A4A] transition-colors group-hover:text-[#D4A373] sm:text-2xl">
                           {entry.title}
                         </h4>
-                        <p className="text-base italic leading-relaxed text-[#6B5C4C] sm:text-lg line-clamp-2">
-                          {preview}
-                        </p>
                       </div>
                     </div>
                     <div className="mt-10 h-px w-full bg-[#EAE1D3] opacity-50 sm:mt-12" />

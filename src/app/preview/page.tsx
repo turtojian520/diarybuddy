@@ -19,6 +19,13 @@ function parseActionItems(markdown: string): Array<{ text: string; checked: bool
     })
 }
 
+/** Converts **bold** and *italic* markers to HTML, safe to use in dangerouslySetInnerHTML. */
+function inlineHtml(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+?)\*/g, '<em>$1</em>')
+}
+
 function MarkdownBlock({ content }: { content: string }) {
   if (!content) return null
 
@@ -29,26 +36,56 @@ function MarkdownBlock({ content }: { content: string }) {
   while (i < lines.length) {
     const line = lines[i]
 
-    if (line.startsWith('## ')) {
+    // — Headings (check longer prefixes first to avoid mis-matching) —
+    if (line.startsWith('#### ')) {
       elements.push(
-        <h2 key={i} className="mb-8 text-2xl font-normal italic text-[#2B2A27]">
-          {line.replace('## ', '')}
-        </h2>
+        <h4
+          key={i}
+          className="mb-2 mt-6 text-base font-semibold text-[#4A4A4A]"
+          dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(5)) }}
+        />
+      )
+    } else if (line.startsWith('### ')) {
+      elements.push(
+        <h3
+          key={i}
+          className="mb-3 mt-8 text-lg font-semibold tracking-wide text-[#2B2A27]"
+          dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(4)) }}
+        />
+      )
+    } else if (line.startsWith('## ')) {
+      elements.push(
+        <h2
+          key={i}
+          className="mb-6 mt-10 text-2xl font-normal italic text-[#2B2A27]"
+          dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(3)) }}
+        />
       )
     } else if (line.startsWith('# ')) {
       elements.push(
-        <h1 key={i} className="mb-8 text-3xl font-normal leading-snug tracking-tight text-[#2B2A27] sm:text-4xl">
-          {line.replace('# ', '')}
-        </h1>
+        <h1
+          key={i}
+          className="mb-8 text-3xl font-normal leading-snug tracking-tight text-[#2B2A27] sm:text-4xl"
+          dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(2)) }}
+        />
       )
+
+    // — Blockquote —
     } else if (line.startsWith('> ') || line.startsWith('>')) {
       elements.push(
         <blockquote key={i} className="my-6 border-l-4 border-[#D4A373] bg-[#F6F3EE]/50 py-2 pl-6 sm:pl-8">
-          <p className="text-base italic leading-relaxed text-[#4A4A4A] sm:text-lg">
-            {line.replace(/^>\s*/, '')}
-          </p>
+          <p
+            className="text-base italic leading-relaxed text-[#4A4A4A] sm:text-lg"
+            dangerouslySetInnerHTML={{ __html: inlineHtml(line.replace(/^>\s*/, '')) }}
+          />
         </blockquote>
       )
+
+    // — Horizontal rule —
+    } else if (line.trim() === '---') {
+      elements.push(<hr key={i} className="border-dashed border-[#EAE1D3]" />)
+
+    // — Ordered list: collect consecutive items —
     } else if (line.match(/^\d+\.\s/)) {
       const listItems: string[] = []
       while (i < lines.length && lines[i].match(/^\d+\.\s/)) {
@@ -56,44 +93,49 @@ function MarkdownBlock({ content }: { content: string }) {
         i++
       }
       elements.push(
-        <ol key={`list-${i}`} className="ml-6 list-decimal space-y-4 text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
+        <ol key={`ol-${i}`} className="ml-6 list-decimal space-y-4 text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
           {listItems.map((item, j) => (
-            <li key={j} className="pl-4" dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+            <li key={j} className="pl-4" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
         </ol>
       )
-      continue
+      continue // i already advanced inside the while loop
+
+    // — Unordered list (excluding task items): collect consecutive items —
     } else if (line.startsWith('- ') && !line.match(/^- \[/)) {
       const listItems: string[] = []
       while (i < lines.length && lines[i].startsWith('- ') && !lines[i].match(/^- \[/)) {
-        listItems.push(lines[i].replace(/^- /, ''))
+        listItems.push(lines[i].slice(2))
         i++
       }
       elements.push(
         <ul key={`ul-${i}`} className="ml-6 list-disc space-y-3 text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
           {listItems.map((item, j) => (
-            <li key={j} className="pl-2" dangerouslySetInnerHTML={{ __html: item.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }} />
+            <li key={j} className="pl-2" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
         </ul>
       )
-      continue
-    } else if (line.trim() === '' || line === '---') {
-      if (line === '---') {
-        elements.push(<hr key={i} className="border-dashed border-[#EAE1D3]" />)
-      }
-    } else if (line.trim()) {
+      continue // i already advanced inside the while loop
+
+    // — Empty line: skip (spacing handled by space-y on parent) —
+    } else if (line.trim() === '') {
+      // intentional no-op
+
+    // — Plain paragraph —
+    } else {
       elements.push(
         <p
           key={i}
           className="text-base leading-loose tracking-wide text-[#4A4A4A] sm:text-lg sm:indent-8"
-          dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+          dangerouslySetInnerHTML={{ __html: inlineHtml(line) }}
         />
       )
     }
+
     i++
   }
 
-  return <div className="space-y-6">{elements}</div>
+  return <div className="space-y-4">{elements}</div>
 }
 
 export default function PreviewPage() {
@@ -241,42 +283,42 @@ export default function PreviewPage() {
                 <hr className="border-dashed border-[#EAE1D3]" />
                 <section>
                   <h2 className="mb-8 text-2xl font-normal italic text-[#2B2A27]">静思洞察</h2>
-                  <blockquote className="my-6 border-l-4 border-[#D4A373] bg-[#F6F3EE]/50 py-4 pl-6 sm:pl-8">
-                    <p className="text-base leading-relaxed text-[#4A4A4A] sm:text-lg whitespace-pre-line">
-                      {entry.mentor_insights}
-                    </p>
-                  </blockquote>
+                  <MarkdownBlock content={entry.mentor_insights} />
                 </section>
               </>
             )}
 
-            {entry.action_items && parseActionItems(entry.action_items).length > 0 && (
+            {entry.action_items && (
               <>
                 <hr className="border-dashed border-[#EAE1D3]" />
                 <section>
                   <h2 className="mb-8 text-2xl font-normal italic text-[#2B2A27]">明日行动清单</h2>
-                  <div className="space-y-5 text-base text-[#4A4A4A] sm:text-lg">
-                    {parseActionItems(entry.action_items).map((task, index) => {
-                      const isDone = taskStates[index] ?? task.checked
-                      return (
-                        <button
-                          key={task.text}
-                          type="button"
-                          onClick={() => toggleTask(index)}
-                          className="group flex items-start text-left"
-                        >
-                          {isDone ? (
-                            <CheckSquare className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#D4A373]" />
-                          ) : (
-                            <Square className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#8C7B6A] transition-colors group-hover:text-[#D4A373]" />
-                          )}
-                          <span className={`leading-relaxed ${isDone ? 'line-through text-[#8C7B6A]' : ''}`}>
-                            {task.text}
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
+                  {parseActionItems(entry.action_items).length > 0 ? (
+                    <div className="space-y-5 text-base text-[#4A4A4A] sm:text-lg">
+                      {parseActionItems(entry.action_items).map((task, index) => {
+                        const isDone = taskStates[index] ?? task.checked
+                        return (
+                          <button
+                            key={task.text}
+                            type="button"
+                            onClick={() => toggleTask(index)}
+                            className="group flex items-start text-left"
+                          >
+                            {isDone ? (
+                              <CheckSquare className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#D4A373]" />
+                            ) : (
+                              <Square className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#8C7B6A] transition-colors group-hover:text-[#D4A373]" />
+                            )}
+                            <span className={`leading-relaxed ${isDone ? 'line-through text-[#8C7B6A]' : ''}`}>
+                              {task.text}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <MarkdownBlock content={entry.action_items} />
+                  )}
                 </section>
               </>
             )}

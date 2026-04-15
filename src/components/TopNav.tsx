@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { BookOpenText, FileText, History, Settings2, LogOut } from 'lucide-react'
+import { BookOpenText, FileText, History, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/browser'
 
 const navItems = [
   { href: '/', label: '工作台', icon: BookOpenText },
   { href: '/preview', label: '预览', icon: FileText },
   { href: '/history', label: '历史', icon: History },
-  { href: '/settings', label: '设置', icon: Settings2 },
 ]
 
 export function TopNav() {
