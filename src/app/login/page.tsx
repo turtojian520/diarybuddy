@@ -43,7 +43,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4A373]/15">
             <BookOpenText className="h-6 w-6 text-[#D4A373]" />
           </div>
-          <h1 className="text-2xl font-normal italic tracking-wide text-[#2B2A27]">日记伙伴</h1>
+          <h1 className="text-2xl font-normal italic tracking-wide text-[#2B2A27]">Diarybuddy</h1>
           <p className="text-sm italic text-[#8C7B6A]">你的私人 AI 日记本</p>
         </div>
 

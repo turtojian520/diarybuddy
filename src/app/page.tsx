@@ -141,7 +141,7 @@ function WorkspaceContent() {
       <aside className="flex w-full flex-col justify-between border-b border-[#EAE1D3] bg-[#F6F3EE] lg:w-72 lg:border-b-0 lg:border-r">
         <div>
           <div className="px-6 pb-4 pt-8 sm:px-8">
-            <h1 className="text-3xl font-bold italic tracking-tight text-[#4A4A4A]">日记伙伴</h1>
+            <h1 className="text-3xl font-bold italic tracking-tight text-[#4A4A4A]">Diarybuddy</h1>
             <p className="mt-2 text-sm text-[#8C7B6A]">记录碎片，整理成一篇完整的日记。</p>
           </div>
 
