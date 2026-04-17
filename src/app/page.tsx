@@ -156,12 +156,6 @@ function WorkspaceContent() {
           <div className="px-6 py-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xs uppercase tracking-widest text-[#8C7B6A]">最近记录</h3>
-              <Link
-                href="/history"
-                className="text-xs uppercase tracking-widest text-[#8C7B6A] transition-colors hover:text-[#D4A373]"
-              >
-                查看历史
-              </Link>
             </div>
             <p className="text-xs italic text-[#B4AC9F]">
               {fragments.length > 0
