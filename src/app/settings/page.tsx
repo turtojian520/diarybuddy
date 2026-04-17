@@ -2,9 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Archive, Trash2, AlertTriangle, Loader2, Check } from 'lucide-react'
+import { ArrowLeft, Archive, Trash2, AlertTriangle, Loader2, Check, Link2, Unlink } from 'lucide-react'
 import { getAllDiaryEntries, getTemplates, createTemplate, updateTemplate } from '@/lib/actions'
 import type { DiaryTemplate } from '@/lib/supabase'
+
+type NotionStatus =
+  | { connected: false }
+  | {
+      connected: true
+      workspace_name: string | null
+      workspace_icon: string | null
+      data_source_id: string | null
+      data_source_title: string | null
+    }
 
 const DEFAULT_PROMPT = `你是一位专业的 AI 日记助手。用户在一天中记录了多条碎片化的想法和笔记。
 请根据这些内容，执行以下四项任务：
@@ -48,6 +58,97 @@ export default function SettingsPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [statusMsg, setStatusMsg] = useState('')
+
+  // ── Notion integration state ──────────────────────────────────────────────
+  const [notionStatus, setNotionStatus] = useState<NotionStatus | null>(null)
+  const [loadingNotion, setLoadingNotion] = useState(true)
+  const [notionDatabases, setNotionDatabases] = useState<Array<{ id: string; title: string }>>([])
+  const [loadingDatabases, setLoadingDatabases] = useState(false)
+  const [selectedDb, setSelectedDb] = useState('')
+  const [savingDb, setSavingDb] = useState(false)
+  const [notionMsg, setNotionMsg] = useState('')
+
+  async function refreshNotionStatus() {
+    setLoadingNotion(true)
+    try {
+      const res = await fetch('/api/notion/status')
+      if (res.ok) {
+        const data = (await res.json()) as NotionStatus
+        setNotionStatus(data)
+        if (data.connected) setSelectedDb(data.data_source_id ?? '')
+      }
+    } finally {
+      setLoadingNotion(false)
+    }
+  }
+
+  async function loadNotionDatabases() {
+    setLoadingDatabases(true)
+    setNotionMsg('')
+    try {
+      const res = await fetch('/api/notion/databases')
+      const data = await res.json()
+      if (!res.ok) {
+        setNotionMsg(data.error ?? '加载失败')
+        return
+      }
+      setNotionDatabases(data.databases ?? [])
+    } catch (err) {
+      setNotionMsg(err instanceof Error ? err.message : '加载失败')
+    } finally {
+      setLoadingDatabases(false)
+    }
+  }
+
+  async function handleSelectDatabase() {
+    if (!selectedDb) return
+    setSavingDb(true)
+    setNotionMsg('')
+    try {
+      const res = await fetch('/api/notion/select-database', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ database_id: selectedDb }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setNotionMsg(data.error ?? '保存失败'); return }
+      setNotionMsg('已绑定数据库。')
+      await refreshNotionStatus()
+    } catch (err) {
+      setNotionMsg(err instanceof Error ? err.message : '保存失败')
+    } finally {
+      setSavingDb(false)
+    }
+  }
+
+  async function handleDisconnectNotion() {
+    setNotionMsg('')
+    try {
+      const res = await fetch('/api/notion/disconnect', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json()
+        setNotionMsg(data.error ?? '断开失败')
+        return
+      }
+      setNotionDatabases([])
+      setSelectedDb('')
+      await refreshNotionStatus()
+    } catch (err) {
+      setNotionMsg(err instanceof Error ? err.message : '断开失败')
+    }
+  }
+
+  useEffect(() => {
+    refreshNotionStatus()
+    // Pick up ?notion=connected|denied|invalid|error hint from the OAuth redirect.
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search).get('notion')
+      if (p === 'connected') setNotionMsg('Notion 已连接，请在下方选择一个目标数据库。')
+      else if (p === 'denied') setNotionMsg('你取消了 Notion 授权。')
+      else if (p === 'invalid') setNotionMsg('授权状态无效，请重试。')
+      else if (p === 'error') setNotionMsg('连接 Notion 时出错，请重试。')
+    }
+  }, [])
 
   // Load template from Supabase on mount
   useEffect(() => {
@@ -224,6 +325,101 @@ export default function SettingsPage() {
                   </p>
                 )}
               </>
+            )}
+          </section>
+
+          {/* ── Notion 集成 ── */}
+          <section>
+            <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">Notion 集成</h2>
+            <p className="mb-6 max-w-md text-sm italic leading-relaxed text-[#8C7B6A]">
+              连接你的 Notion 工作区，将每篇日记一键同步到指定的 Database。
+            </p>
+
+            {notionMsg && (
+              <div className="mb-4 rounded-lg border border-[#EAE1D3] bg-[#F6F3EE] px-4 py-3 text-sm text-[#6B5C4C]">
+                {notionMsg}
+              </div>
+            )}
+
+            {loadingNotion ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-[#D4A373]" />
+              </div>
+            ) : !notionStatus?.connected ? (
+              <a
+                href="/api/notion/oauth/start"
+                className="inline-flex items-center gap-2 rounded-full bg-[#D4A373] px-5 py-2 text-sm text-white transition-colors hover:bg-[#C39363]"
+              >
+                <Link2 className="h-4 w-4" />
+                连接 Notion
+              </a>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-center gap-3 text-sm text-[#4A4A4A]">
+                  {notionStatus.workspace_icon && (
+                    <span aria-hidden className="text-xl leading-none">{notionStatus.workspace_icon}</span>
+                  )}
+                  <span>
+                    已连接到 <strong>{notionStatus.workspace_name ?? 'Notion'}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDisconnectNotion}
+                    className="ml-auto inline-flex items-center gap-1 text-xs text-[#8C7B6A] hover:text-red-600"
+                  >
+                    <Unlink className="h-3.5 w-3.5" />
+                    断开
+                  </button>
+                </div>
+
+                {notionStatus.data_source_id && notionStatus.data_source_title ? (
+                  <p className="text-sm text-[#6B5C4C]">
+                    目标 Database：<strong>{notionStatus.data_source_title}</strong>
+                  </p>
+                ) : (
+                  <p className="text-sm italic text-[#B4AC9F]">
+                    还没有选择目标 Database——请先从下方列表选一个。
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={loadNotionDatabases}
+                    disabled={loadingDatabases}
+                    className="rounded-full border border-[#EAE1D3] px-4 py-1.5 text-sm text-[#6B5C4C] transition-colors hover:border-[#D4A373]/50 hover:text-[#D4A373] disabled:opacity-50"
+                  >
+                    {loadingDatabases ? '加载中…' : notionDatabases.length > 0 ? '刷新列表' : '加载我的 Database'}
+                  </button>
+
+                  {notionDatabases.length > 0 && (
+                    <>
+                      <select
+                        value={selectedDb}
+                        onChange={(e) => setSelectedDb(e.target.value)}
+                        className="rounded-full border border-[#EAE1D3] bg-white px-4 py-1.5 text-sm text-[#4A4A4A] outline-none focus:border-[#D4A373]"
+                      >
+                        <option value="">选择一个 Database…</option>
+                        {notionDatabases.map((db) => (
+                          <option key={db.id} value={db.id}>{db.title}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleSelectDatabase}
+                        disabled={!selectedDb || savingDb}
+                        className="rounded-full bg-[#D4A373] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[#C39363] disabled:opacity-50"
+                      >
+                        {savingDb ? '保存中…' : '绑定此 Database'}
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <p className="text-xs italic text-[#B4AC9F]">
+                  提示：若列表为空，请回到 Notion 将目标 Database 分享给 DiaryBuddy Integration。
+                </p>
+              </div>
             )}
           </section>
 

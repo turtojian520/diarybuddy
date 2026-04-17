@@ -98,3 +98,44 @@ create policy "Users can update their own templates"
 create policy "Users can delete their own templates"
   on diary_templates for delete
   using (auth.uid() = user_id);
+
+-- ============================================================
+-- STEP 7: notion_connections table
+--   Stores each user's Notion OAuth access token + selected
+--   database. access_token is stored encrypted (AES-256-GCM).
+-- ============================================================
+
+create table if not exists notion_connections (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid references auth.users(id) on delete cascade not null unique default auth.uid(),
+  access_token_enc  text not null,
+  bot_id            text,
+  workspace_id      text,
+  workspace_name    text,
+  workspace_icon    text,
+  data_source_id    text,
+  data_source_title text,
+  title_prop_name   text,
+  date_prop_name    text,
+  connected_at      timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+
+alter table notion_connections enable row level security;
+
+create policy "Users can select their own notion connection"
+  on notion_connections for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own notion connection"
+  on notion_connections for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own notion connection"
+  on notion_connections for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own notion connection"
+  on notion_connections for delete
+  using (auth.uid() = user_id);

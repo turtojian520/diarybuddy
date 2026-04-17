@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Bookmark, Copy, Download, CheckSquare, Square, Library, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Bookmark, Copy, Download, CheckSquare, Square, Library, Loader2, Share2 } from 'lucide-react'
 import { getDiaryEntry } from '@/lib/actions'
 import { getTodayDate } from '@/lib/utils'
 import type { DiaryEntry } from '@/lib/supabase'
@@ -139,11 +140,14 @@ function MarkdownBlock({ content }: { content: string }) {
 }
 
 export default function PreviewPage() {
+  const router = useRouter()
   const [entry, setEntry] = useState<DiaryEntry | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [taskStates, setTaskStates] = useState<boolean[]>([])
   const [copySuccess, setCopySuccess] = useState(false)
   const [viewDate, setViewDate] = useState('')
+  const [notionState, setNotionState] = useState<'idle' | 'loading' | 'done'>('idle')
+  const [notionMsg, setNotionMsg] = useState('')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -181,6 +185,40 @@ export default function PreviewPage() {
     await navigator.clipboard.writeText(fullText)
     setCopySuccess(true)
     setTimeout(() => setCopySuccess(false), 2000)
+  }
+
+  async function handleExportToNotion() {
+    if (!entry || !viewDate) return
+    setNotionState('loading')
+    setNotionMsg('')
+    try {
+      const res = await fetch('/api/export/notion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: viewDate }),
+      })
+      const data = await res.json() as { url?: string; error?: string; needsConnect?: boolean; needsDatabase?: boolean }
+      if (!res.ok) {
+        if (data.needsConnect || data.needsDatabase) {
+          setNotionMsg('请先在「设置」中连接 Notion 并选择目标数据库。')
+          setTimeout(() => router.push('/settings'), 1200)
+          setNotionState('idle')
+          return
+        }
+        setNotionMsg(data.error ?? '导出失败，请重试。')
+        setNotionState('idle')
+        setTimeout(() => setNotionMsg(''), 4000)
+        return
+      }
+      setNotionState('done')
+      setNotionMsg('已导出到 Notion。')
+      if (data.url) window.open(data.url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => { setNotionState('idle'); setNotionMsg('') }, 3000)
+    } catch (err) {
+      setNotionState('idle')
+      setNotionMsg(err instanceof Error ? err.message : '导出失败。')
+      setTimeout(() => setNotionMsg(''), 4000)
+    }
   }
 
   function handleDownload() {
@@ -243,9 +281,34 @@ export default function PreviewPage() {
                 <Download className="h-4 w-4" />
                 <span>保存 .md</span>
               </button>
+              <button
+                type="button"
+                onClick={handleExportToNotion}
+                disabled={notionState === 'loading'}
+                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[#6B5C4C] transition-all hover:border-[#D4A373]/30 hover:text-[#D4A373] disabled:opacity-50"
+              >
+                {notionState === 'loading' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Share2 className="h-4 w-4" />
+                )}
+                <span>
+                  {notionState === 'loading'
+                    ? '导出中…'
+                    : notionState === 'done'
+                    ? '已导出到 Notion'
+                    : '导出到 Notion'}
+                </span>
+              </button>
             </div>
           )}
         </header>
+
+        {notionMsg && (
+          <div className="mb-8 rounded-lg border border-[#EAE1D3] bg-[#F6F3EE] px-4 py-3 text-sm text-[#6B5C4C]">
+            {notionMsg}
+          </div>
+        )}
 
         {/* 无内容状态 */}
         {!entry && (
