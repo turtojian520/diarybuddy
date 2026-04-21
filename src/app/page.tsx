@@ -228,19 +228,6 @@ function WorkspaceContent() {
                 : ''}
               静静地记录你的想法……
             </p>
-            {todayDate !== getTodayDate() && (
-              <button
-                type="button"
-                onClick={() => {
-                  const realToday = getTodayDate()
-                  sessionStorage.setItem('workspaceSessionDate', realToday)
-                  window.location.href = '/'
-                }}
-                className="mt-2 text-xs text-[#D4A373] underline underline-offset-2 hover:text-[#C39363]"
-              >
-                切换到今天 ({getTodayDate()})
-              </button>
-            )}
           </div>
 
           <div className="flex flex-wrap gap-3">
