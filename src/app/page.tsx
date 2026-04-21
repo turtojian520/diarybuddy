@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Mic, Paperclip, Sparkles, BookText, ArrowRight, Settings, Trash2, Loader2 } from 'lucide-react'
+import { Mic, Paperclip, Sparkles, BookText, ArrowRight, Settings, Trash2, Loader2, ChevronDown } from 'lucide-react'
 import { addFragment, getFragmentsByDate, deleteFragment } from '@/lib/actions'
 import { getTodayDate } from '@/lib/utils'
 import type { DiaryFragment } from '@/lib/supabase'
@@ -26,7 +26,25 @@ function WorkspaceContent() {
   const [displayDate, setDisplayDate] = useState('')
   const [diaryGenerated, setDiaryGenerated] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const dateInputRef = useRef<HTMLInputElement>(null)
   const searchParams = useSearchParams()
+
+  function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newDate = e.target.value
+    if (!newDate || newDate === todayDate) return
+    sessionStorage.setItem('workspaceSessionDate', newDate)
+    window.location.href = `/?date=${newDate}`
+  }
+
+  function openDatePicker() {
+    const input = dateInputRef.current
+    if (!input) return
+    if (typeof input.showPicker === 'function') {
+      input.showPicker()
+    } else {
+      input.click()
+    }
+  }
 
   useEffect(() => {
     // If a ?date= param is provided (e.g. to restore yesterday's view), use it.
@@ -180,7 +198,30 @@ function WorkspaceContent() {
       <main className="relative flex min-h-[calc(100vh-5rem)] flex-1 flex-col px-6 sm:px-10 lg:min-h-screen lg:px-20">
         <header className="flex flex-col gap-6 border-b border-[#EAE1D3] py-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="mb-2 text-3xl font-normal text-[#2B2A27] sm:text-4xl">{displayDate}</h2>
+            <div className="mb-2 flex items-center gap-2">
+              <h2 className="text-3xl font-normal text-[#2B2A27] sm:text-4xl">{displayDate}</h2>
+              <div className="relative inline-flex">
+                <button
+                  type="button"
+                  onClick={openDatePicker}
+                  className="rounded-full p-1.5 text-[#8C7B6A] transition-colors hover:bg-[#F6F3EE] hover:text-[#D4A373]"
+                  title="选择其他日期"
+                  aria-label="选择其他日期"
+                >
+                  <ChevronDown className="h-5 w-5" />
+                </button>
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  value={todayDate}
+                  max={getTodayDate()}
+                  onChange={handleDateChange}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  aria-label="选择日期"
+                  tabIndex={-1}
+                />
+              </div>
+            </div>
             <p className="text-sm italic text-[#8C7B6A]">
               {todayDate !== getTodayDate()
                 ? `正在查看 ${displayDate} 的工作台 · `
