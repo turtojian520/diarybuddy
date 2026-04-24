@@ -36,29 +36,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FDFBF7] px-4 text-[#333333]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--db-bg)] px-4 text-[var(--db-ink)]">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-12 flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D4A373]/15">
-            <BookOpenText className="h-6 w-6 text-[#D4A373]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--db-accent)]/15">
+            <BookOpenText className="h-6 w-6 text-[var(--db-accent)]" />
           </div>
-          <h1 className="text-2xl font-normal italic tracking-wide text-[#2B2A27]">Diarybuddy</h1>
-          <p className="text-sm italic text-[#8C7B6A]">你的私人 AI 日记本</p>
+          <h1 className="text-2xl font-normal italic tracking-wide text-[var(--db-ink)]">Diarybuddy</h1>
+          <p className="text-sm italic text-[var(--db-muted)]">你的私人 AI 日记本</p>
         </div>
 
         {sent ? (
-          <div className="rounded-2xl border border-[#EAE1D3] bg-white px-8 py-10 text-center shadow-sm">
-            <Mail className="mx-auto mb-4 h-8 w-8 text-[#D4A373]" />
-            <h2 className="mb-2 text-lg text-[#2B2A27]">请查看你的邮箱</h2>
-            <p className="text-sm leading-relaxed text-[#8C7B6A]">
-              我们已将登录链接发送至 <strong className="text-[#4A4A4A]">{email}</strong>，
+          <div className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-8 py-10 text-center shadow-sm">
+            <Mail className="mx-auto mb-4 h-8 w-8 text-[var(--db-accent)]" />
+            <h2 className="mb-2 text-lg text-[var(--db-ink)]">请查看你的邮箱</h2>
+            <p className="text-sm leading-relaxed text-[var(--db-muted)]">
+              我们已将登录链接发送至 <strong className="text-[var(--db-ink-2)]">{email}</strong>，
               点击邮件中的链接即可登录，无需密码。
             </p>
             <button
               type="button"
               onClick={() => { setSent(false); setEmail('') }}
-              className="mt-6 text-xs text-[#B4AC9F] underline underline-offset-2 hover:text-[#8C7B6A]"
+              className="mt-6 text-xs text-[var(--db-faint)] underline underline-offset-2 hover:text-[var(--db-muted)]"
             >
               使用其他邮箱
             </button>
@@ -66,26 +66,29 @@ export default function LoginPage() {
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-[#EAE1D3] bg-white px-8 py-10 shadow-sm"
+            className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-8 py-10 shadow-sm"
           >
-            <h2 className="mb-1 text-lg text-[#2B2A27]">登录</h2>
-            <p className="mb-8 text-sm text-[#8C7B6A]">
+            <h2 className="mb-1 text-lg text-[var(--db-ink)]">登录</h2>
+            <p className="mb-8 text-sm text-[var(--db-muted)]">
               输入你的邮箱，我们将向你发送一个魔法登录链接。
             </p>
 
             <div className="mb-6">
-              <label htmlFor="email" className="mb-2 block text-xs uppercase tracking-widest text-[#8C7B6A]">
+              <label htmlFor="email" className="mb-2 block text-xs uppercase tracking-widest text-[var(--db-muted)]">
                 邮箱地址
               </label>
               <input
                 id="email"
                 type="email"
+                inputMode="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-[#EAE1D3] bg-[#FDFBF7] px-4 py-3 text-base text-[#4A4A4A] outline-none placeholder:text-[#C4B9AA] focus:border-[#D4A373] focus:ring-2 focus:ring-[#D4A373]/20"
+                className="w-full rounded-lg border border-[var(--db-border)] bg-[var(--db-bg)] px-4 py-3 text-base text-[var(--db-ink-2)] outline-none placeholder:text-[var(--db-faint)] focus:border-[var(--db-accent)] focus:ring-2 focus:ring-[var(--db-accent)]/20"
               />
             </div>
 
@@ -96,7 +99,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || !email.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#D4A373] py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#C39363] disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--db-accent)] py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-50"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
               {isLoading ? '发送中……' : '发送魔法链接'}

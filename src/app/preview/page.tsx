@@ -7,6 +7,7 @@ import { ArrowLeft, Bookmark, Copy, Download, CheckSquare, Square, Library, Load
 import { getDiaryEntry } from '@/lib/actions'
 import { getTodayDate } from '@/lib/utils'
 import type { DiaryEntry } from '@/lib/supabase'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
 
 function parseActionItems(markdown: string): Array<{ text: string; checked: boolean }> {
   if (!markdown) return []
@@ -42,7 +43,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h4
           key={i}
-          className="mb-2 mt-6 text-base font-semibold text-[#4A4A4A]"
+          className="mb-2 mt-6 text-base font-semibold text-[var(--db-ink-2)]"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(5)) }}
         />
       )
@@ -50,7 +51,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h3
           key={i}
-          className="mb-3 mt-8 text-lg font-semibold tracking-wide text-[#2B2A27]"
+          className="mb-3 mt-8 text-lg font-semibold tracking-wide text-[var(--db-ink)]"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(4)) }}
         />
       )
@@ -58,7 +59,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h2
           key={i}
-          className="mb-6 mt-10 text-2xl font-normal italic text-[#2B2A27]"
+          className="mb-6 mt-10 text-2xl font-normal italic text-[var(--db-ink)]"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(3)) }}
         />
       )
@@ -66,7 +67,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h1
           key={i}
-          className="mb-8 text-3xl font-normal leading-snug tracking-tight text-[#2B2A27] sm:text-4xl"
+          className="mb-8 text-3xl font-normal leading-snug tracking-tight text-[var(--db-ink)] sm:text-4xl"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(2)) }}
         />
       )
@@ -74,9 +75,9 @@ function MarkdownBlock({ content }: { content: string }) {
     // — Blockquote —
     } else if (line.startsWith('> ') || line.startsWith('>')) {
       elements.push(
-        <blockquote key={i} className="my-6 border-l-4 border-[#D4A373] bg-[#F6F3EE]/50 py-2 pl-6 sm:pl-8">
+        <blockquote key={i} className="my-6 border-l-4 border-[var(--db-accent)] bg-[var(--db-surface)]/50 py-2 pl-6 sm:pl-8">
           <p
-            className="text-base italic leading-relaxed text-[#4A4A4A] sm:text-lg"
+            className="text-base italic leading-relaxed text-[var(--db-ink-2)] sm:text-lg"
             dangerouslySetInnerHTML={{ __html: inlineHtml(line.replace(/^>\s*/, '')) }}
           />
         </blockquote>
@@ -84,7 +85,7 @@ function MarkdownBlock({ content }: { content: string }) {
 
     // — Horizontal rule —
     } else if (line.trim() === '---') {
-      elements.push(<hr key={i} className="border-dashed border-[#EAE1D3]" />)
+      elements.push(<hr key={i} className="border-dashed border-[var(--db-border)]" />)
 
     // — Ordered list: collect consecutive items —
     } else if (line.match(/^\d+\.\s/)) {
@@ -94,7 +95,7 @@ function MarkdownBlock({ content }: { content: string }) {
         i++
       }
       elements.push(
-        <ol key={`ol-${i}`} className="ml-6 list-decimal space-y-4 text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
+        <ol key={`ol-${i}`} className="ml-6 list-decimal space-y-4 text-base leading-relaxed text-[var(--db-ink-2)] sm:text-lg">
           {listItems.map((item, j) => (
             <li key={j} className="pl-4" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
@@ -110,7 +111,7 @@ function MarkdownBlock({ content }: { content: string }) {
         i++
       }
       elements.push(
-        <ul key={`ul-${i}`} className="ml-6 list-disc space-y-3 text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
+        <ul key={`ul-${i}`} className="ml-6 list-disc space-y-3 text-base leading-relaxed text-[var(--db-ink-2)] sm:text-lg">
           {listItems.map((item, j) => (
             <li key={j} className="pl-2" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
@@ -127,7 +128,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <p
           key={i}
-          className="text-base leading-loose tracking-wide text-[#4A4A4A] sm:text-lg sm:indent-8"
+          className="text-base leading-loose tracking-wide text-[var(--db-ink-2)] sm:text-lg sm:indent-8"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line) }}
         />
       )
@@ -237,30 +238,30 @@ export default function PreviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#FDFBF7]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#D4A373]" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--db-bg)]">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--db-accent)]" />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[#FDFBF7] px-4 pb-20 pt-24 text-[#333333] sm:px-6 lg:pb-32">
+    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-36 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-3xl">
-        {/* 顶部操作栏 */}
-        <header className="mb-12 flex flex-col gap-6 sm:mb-16 sm:flex-row sm:items-center sm:justify-between">
+        {/* 顶部操作栏 — 桌面/平板保持原样，手机收起到底部 sticky 条 */}
+        <header className="mb-10 flex flex-col gap-6 sm:mb-16 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center space-x-4">
-            <Link href="/" className="text-[#8C7B6A] transition-colors hover:text-[#4A4A4A]">
+            <Link href="/" className="text-[var(--db-muted)] transition-colors hover:text-[var(--db-ink-2)]">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <Bookmark className="h-4 w-4 text-[#D4A373]" />
-            <span className="text-sm uppercase tracking-[0.2em] text-[#9f8a76]">已生成的日记</span>
+            <Bookmark className="h-4 w-4 text-[var(--db-accent)]" />
+            <span className="text-sm uppercase tracking-[0.2em] text-[var(--db-muted)]">已生成的日记</span>
           </div>
 
           {entry && (
-            <div className="flex flex-wrap gap-3">
+            <div className="hidden flex-wrap gap-3 md:flex">
               <Link
                 href="/history"
-                className="flex items-center space-x-2 rounded-full border border-[#EAE1D3] px-3 py-1.5 text-sm text-[#6B5C4C] transition-all hover:border-[#D4A373]/50 hover:text-[#D4A373]"
+                className="flex items-center space-x-2 rounded-full border border-[var(--db-border)] px-3 py-1.5 text-sm text-[var(--db-ink-2)] transition-all hover:border-[var(--db-accent)]/50 hover:text-[var(--db-accent)]"
               >
                 <Library className="h-4 w-4" />
                 <span>历史</span>
@@ -268,7 +269,7 @@ export default function PreviewPage() {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[#6B5C4C] transition-all hover:border-[#D4A373]/30 hover:text-[#D4A373]"
+                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[var(--db-ink-2)] transition-all hover:border-[var(--db-accent)]/30 hover:text-[var(--db-accent)]"
               >
                 <Copy className="h-4 w-4" />
                 <span>{copySuccess ? '已复制！' : '复制文字'}</span>
@@ -276,7 +277,7 @@ export default function PreviewPage() {
               <button
                 type="button"
                 onClick={handleDownload}
-                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[#6B5C4C] transition-all hover:border-[#D4A373]/30 hover:text-[#D4A373]"
+                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[var(--db-ink-2)] transition-all hover:border-[var(--db-accent)]/30 hover:text-[var(--db-accent)]"
               >
                 <Download className="h-4 w-4" />
                 <span>保存 .md</span>
@@ -285,7 +286,7 @@ export default function PreviewPage() {
                 type="button"
                 onClick={handleExportToNotion}
                 disabled={notionState === 'loading'}
-                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[#6B5C4C] transition-all hover:border-[#D4A373]/30 hover:text-[#D4A373] disabled:opacity-50"
+                className="flex items-center space-x-2 rounded-full border border-transparent px-3 py-1.5 text-sm text-[var(--db-ink-2)] transition-all hover:border-[var(--db-accent)]/30 hover:text-[var(--db-accent)] disabled:opacity-50"
               >
                 {notionState === 'loading' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -305,7 +306,7 @@ export default function PreviewPage() {
         </header>
 
         {notionMsg && (
-          <div className="mb-8 rounded-lg border border-[#EAE1D3] bg-[#F6F3EE] px-4 py-3 text-sm text-[#6B5C4C]">
+          <div className="mb-8 rounded-lg border border-[var(--db-border)] bg-[var(--db-surface)] px-4 py-3 text-sm text-[var(--db-ink-2)]">
             {notionMsg}
           </div>
         )}
@@ -313,11 +314,11 @@ export default function PreviewPage() {
         {/* 无内容状态 */}
         {!entry && (
           <div className="flex flex-col items-center justify-center py-32 text-center">
-            <p className="text-xl italic text-[#B4AC9F]">未找到该日期的日记。</p>
-            <p className="mt-3 text-sm text-[#C4B9AA]">前往工作台，添加想法，然后点击生成。</p>
+            <p className="text-xl italic text-[var(--db-faint)]">未找到该日期的日记。</p>
+            <p className="mt-3 text-sm text-[var(--db-faint)]">前往工作台，添加想法，然后点击生成。</p>
             <Link
               href="/"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#D4A373] px-6 py-3 text-sm text-white transition-colors hover:bg-[#C39363]"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--db-accent)] px-6 py-3 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)]"
             >
               前往工作台
             </Link>
@@ -326,16 +327,16 @@ export default function PreviewPage() {
 
         {/* 日记内容 */}
         {entry && (
-          <article className="space-y-16 sm:space-y-24">
+          <article className="space-y-12 sm:space-y-24">
             <section>
               <MarkdownBlock content={entry.full_diary} />
             </section>
 
             {entry.key_points && (
               <>
-                <hr className="border-dashed border-[#EAE1D3]" />
+                <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[#2B2A27]">关键要点</h2>
+                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">关键要点</h2>
                   <MarkdownBlock content={entry.key_points} />
                 </section>
               </>
@@ -343,9 +344,9 @@ export default function PreviewPage() {
 
             {entry.mentor_insights && (
               <>
-                <hr className="border-dashed border-[#EAE1D3]" />
+                <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[#2B2A27]">静思洞察</h2>
+                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">静思洞察</h2>
                   <MarkdownBlock content={entry.mentor_insights} />
                 </section>
               </>
@@ -353,11 +354,11 @@ export default function PreviewPage() {
 
             {entry.action_items && (
               <>
-                <hr className="border-dashed border-[#EAE1D3]" />
+                <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[#2B2A27]">明日行动清单</h2>
+                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">明日行动清单</h2>
                   {parseActionItems(entry.action_items).length > 0 ? (
-                    <div className="space-y-5 text-base text-[#4A4A4A] sm:text-lg">
+                    <div className="space-y-5 text-base text-[var(--db-ink-2)] sm:text-lg">
                       {parseActionItems(entry.action_items).map((task, index) => {
                         const isDone = taskStates[index] ?? task.checked
                         return (
@@ -368,11 +369,11 @@ export default function PreviewPage() {
                             className="group flex items-start text-left"
                           >
                             {isDone ? (
-                              <CheckSquare className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#D4A373]" />
+                              <CheckSquare className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[var(--db-accent)]" />
                             ) : (
-                              <Square className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[#8C7B6A] transition-colors group-hover:text-[#D4A373]" />
+                              <Square className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[var(--db-muted)] transition-colors group-hover:text-[var(--db-accent)]" />
                             )}
-                            <span className={`leading-relaxed ${isDone ? 'line-through text-[#8C7B6A]' : ''}`}>
+                            <span className={`leading-relaxed ${isDone ? 'line-through text-[var(--db-muted)]' : ''}`}>
                               {task.text}
                             </span>
                           </button>
@@ -388,6 +389,57 @@ export default function PreviewPage() {
           </article>
         )}
       </div>
+
+      {/* 手机端：底部 sticky 操作条（放在 MobileBottomNav 之上）*/}
+      {entry && (
+        <div
+          className="fixed inset-x-0 bottom-14 z-30 border-t border-[var(--db-border)] bg-[var(--db-bg)]/95 px-3 py-2 backdrop-blur md:hidden"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.25rem)' }}
+        >
+          <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label={copySuccess ? '已复制' : '复制文字'}
+              className="flex flex-1 flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[11px] text-[var(--db-ink-2)] transition-colors active:bg-[var(--db-surface)]"
+            >
+              <Copy className="h-5 w-5" aria-hidden />
+              <span>{copySuccess ? '已复制' : '复制'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleDownload}
+              aria-label="下载 Markdown"
+              className="flex flex-1 flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 text-[11px] text-[var(--db-ink-2)] transition-colors active:bg-[var(--db-surface)]"
+            >
+              <Download className="h-5 w-5" aria-hidden />
+              <span>下载</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExportToNotion}
+              disabled={notionState === 'loading'}
+              aria-label="导出到 Notion"
+              className="flex flex-[1.5] items-center justify-center gap-1.5 rounded-full bg-[var(--db-accent)] px-3 py-2 text-sm font-medium text-white shadow-[0_4px_14px_rgba(212,163,115,0.3)] transition-colors active:bg-[var(--db-accent-dim)] disabled:opacity-60"
+            >
+              {notionState === 'loading' ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Share2 className="h-4 w-4" aria-hidden />
+              )}
+              <span className="truncate">
+                {notionState === 'loading'
+                  ? '导出中…'
+                  : notionState === 'done'
+                  ? '已导出'
+                  : '导出到 Notion'}
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <MobileBottomNav />
     </div>
   )
 }

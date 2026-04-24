@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Search, ArrowLeft, List, Loader2 } from 'lucide-react'
 import { getAllDiaryEntries } from '@/lib/actions'
 import type { DiaryEntry } from '@/lib/supabase'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
 
 function formatEntryDate(dateStr: string): { display: string; weekday: string } {
   const [year, month, day] = dateStr.split('-').map(Number)
@@ -41,18 +42,18 @@ export default function HistoryPage() {
   })
 
   return (
-    <div className="flex min-h-screen justify-center bg-[#FDFBF7] px-4 pb-20 pt-24 text-[#333333] sm:px-6 lg:pb-32">
+    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-28 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-4xl">
-        <header className="mb-12 border-b border-[#EAE1D3] pb-4 sm:mb-20">
+        <header className="mb-12 border-b border-[var(--db-border)] pb-4 sm:mb-20">
           <div className="mb-6 flex items-center justify-between gap-4">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-[#8C7B6A] transition-colors hover:text-[#4A4A4A]"
+              className="inline-flex items-center gap-2 text-sm text-[var(--db-muted)] transition-colors hover:text-[var(--db-ink-2)]"
             >
               <ArrowLeft className="h-4 w-4" />
               返回工作台
             </Link>
-            <p className="hidden text-xs uppercase tracking-[0.25em] text-[#B4AC9F] sm:block">归档浏览</p>
+            <p className="hidden text-xs uppercase tracking-[0.25em] text-[var(--db-faint)] sm:block">归档浏览</p>
           </div>
 
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -62,15 +63,15 @@ export default function HistoryPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="搜索日记内容……"
-                className="w-full bg-transparent pl-8 text-lg text-[#4A4A4A] outline-none placeholder:italic placeholder:text-[#B4AC9F] sm:text-xl"
+                className="w-full bg-transparent pl-8 text-lg text-[var(--db-ink-2)] outline-none placeholder:italic placeholder:text-[var(--db-faint)] sm:text-xl"
               />
-              <Search className="absolute left-0 top-1/2 h-5 w-5 -translate-y-1/2 text-[#B4AC9F] transition-colors group-focus-within:text-[#D4A373]" />
+              <Search className="absolute left-0 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--db-faint)] transition-colors group-focus-within:text-[var(--db-accent)]" />
             </div>
 
-            <div className="flex items-center space-x-6 text-sm uppercase tracking-widest text-[#6B5C4C]">
-              <button type="button" className="flex items-center space-x-2 font-semibold text-[#D4A373]">
+            <div className="flex items-center space-x-6 text-sm uppercase tracking-widest text-[var(--db-ink-2)]">
+              <button type="button" className="flex items-center space-x-2 font-semibold text-[var(--db-accent)]">
                 <List className="h-4 w-4" />
-                <span className="border-b border-[#D4A373] pb-0.5">列表</span>
+                <span className="border-b border-[var(--db-accent)] pb-0.5">列表</span>
               </button>
             </div>
           </div>
@@ -78,7 +79,7 @@ export default function HistoryPage() {
 
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-[#D4A373]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--db-accent)]" />
           </div>
         ) : (
           <>
@@ -94,21 +95,21 @@ export default function HistoryPage() {
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-baseline md:gap-12">
                       <div className="w-32 shrink-0">
-                        <h3 className="text-xl italic text-[#2B2A27]">{display}</h3>
-                        <p className="mt-1 text-xs uppercase tracking-widest text-[#8C7B6A]">{weekday}</p>
+                        <h3 className="text-xl italic text-[var(--db-ink)]">{display}</h3>
+                        <p className="mt-1 text-xs uppercase tracking-widest text-[var(--db-muted)]">{weekday}</p>
                       </div>
                       <div className="relative flex-1">
                         <div
                           className={`absolute -left-4 top-2 h-1.5 w-1.5 rounded-full ${
-                            entry.is_highlighted ? 'bg-[#D4A373]' : 'border border-[#D4A373]'
+                            entry.is_highlighted ? 'bg-[var(--db-accent)]' : 'border border-[var(--db-accent)]'
                           }`}
                         />
-                        <h4 className="mb-3 text-xl text-[#4A4A4A] transition-colors group-hover:text-[#D4A373] sm:text-2xl">
+                        <h4 className="mb-3 text-xl text-[var(--db-ink-2)] transition-colors group-hover:text-[var(--db-accent)] sm:text-2xl">
                           {entry.title}
                         </h4>
                       </div>
                     </div>
-                    <div className="mt-10 h-px w-full bg-[#EAE1D3] opacity-50 sm:mt-12" />
+                    <div className="mt-10 h-px w-full bg-[var(--db-border)] opacity-50 sm:mt-12" />
                   </Link>
                 )
               })}
@@ -117,18 +118,19 @@ export default function HistoryPage() {
             <div className="mt-16 text-center sm:mt-24">
               {entries.length === 0 ? (
                 <div>
-                  <p className="text-sm italic text-[#B4AC9F]">暂无日记记录。</p>
-                  <p className="mt-2 text-xs text-[#C4B9AA]">前往工作台生成第一篇日记。</p>
+                  <p className="text-sm italic text-[var(--db-faint)]">暂无日记记录。</p>
+                  <p className="mt-2 text-xs text-[var(--db-faint)]">前往工作台生成第一篇日记。</p>
                 </div>
               ) : filteredEntries.length === 0 ? (
-                <p className="text-sm italic text-[#B4AC9F]">未找到匹配的日记。</p>
+                <p className="text-sm italic text-[var(--db-faint)]">未找到匹配的日记。</p>
               ) : (
-                <p className="text-sm italic text-[#B4AC9F]">更早的日记已安全归档……</p>
+                <p className="text-sm italic text-[var(--db-faint)]">更早的日记已安全归档……</p>
               )}
             </div>
           </>
         )}
       </div>
+      <MobileBottomNav />
     </div>
   )
 }

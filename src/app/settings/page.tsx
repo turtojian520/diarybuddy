@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Archive, Trash2, AlertTriangle, Loader2, Check, Link2, Unlink } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Archive, Trash2, AlertTriangle, Loader2, Check, Link2, Unlink, LogOut } from 'lucide-react'
 import { getAllDiaryEntries, getTemplates, createTemplate, updateTemplate } from '@/lib/actions'
 import type { DiaryTemplate } from '@/lib/supabase'
+import { MobileBottomNav } from '@/components/MobileBottomNav'
+import { createClient } from '@/lib/supabase/browser'
 
 type NotionStatus =
   | { connected: false }
@@ -45,6 +48,14 @@ const DEFAULT_PROMPT = `你是一位专业的 AI 日记助手。用户在一天�
 不要添加任何额外的解释性文字。`
 
 export default function SettingsPage() {
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
   // ── Prompt template state ─────────────────────────────────────────────────
   const [templateId, setTemplateId] = useState<string | null>(null)
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT)
@@ -247,31 +258,31 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[#FDFBF7] px-4 pb-20 pt-24 text-[#333333] sm:px-6 lg:pb-32">
+    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-28 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-2xl">
         <Link
           href="/"
-          className="mb-10 inline-flex items-center gap-2 text-sm text-[#8C7B6A] transition-colors hover:text-[#4A4A4A]"
+          className="mb-10 inline-flex items-center gap-2 text-sm text-[var(--db-muted)] transition-colors hover:text-[var(--db-ink-2)]"
         >
           <ArrowLeft className="h-4 w-4" />
           返回工作台
         </Link>
 
         <header className="mb-16 text-center">
-          <h1 className="text-3xl font-normal tracking-wide text-[#2B2A27] sm:text-4xl">偏好设置</h1>
+          <h1 className="text-3xl font-normal tracking-wide text-[var(--db-ink)] sm:text-4xl">偏好设置</h1>
           <div className="mt-6 flex justify-center">
-            <div className="h-px w-16 bg-[#D4A373] opacity-60" />
+            <div className="h-px w-16 bg-[var(--db-accent)] opacity-60" />
           </div>
         </header>
 
-        <div className="space-y-16 sm:space-y-20">
+        <div className="space-y-12 sm:space-y-20">
 
           {/* ── 日记模板 ── */}
           <section>
             <div className="mb-6 flex items-end justify-between">
               <div>
-                <h2 className="text-2xl italic text-[#4A4A4A]">日记模板</h2>
-                <p className="mt-1 text-sm italic text-[#8C7B6A]">
+                <h2 className="text-2xl italic text-[var(--db-ink-2)]">日记模板</h2>
+                <p className="mt-1 text-sm italic text-[var(--db-muted)]">
                   生成日记时发送给 AI 的系统指令，可直接编辑。
                 </p>
               </div>
@@ -281,7 +292,7 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="text-xs text-[#8C7B6A] hover:text-[#4A4A4A]"
+                      className="text-xs text-[var(--db-muted)] hover:text-[var(--db-ink-2)]"
                     >
                       重置默认
                     </button>
@@ -290,7 +301,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleSavePrompt}
                     disabled={savingPrompt || (!isDirty && templateId !== null)}
-                    className="flex items-center gap-1.5 rounded-full bg-[#D4A373] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[#C39363] disabled:opacity-40"
+                    className="flex items-center gap-1.5 rounded-full bg-[var(--db-accent)] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-40"
                   >
                     {savingPrompt ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -305,22 +316,22 @@ export default function SettingsPage() {
 
             {loadingPrompt ? (
               <div className="flex justify-center py-10">
-                <Loader2 className="h-6 w-6 animate-spin text-[#D4A373]" />
+                <Loader2 className="h-6 w-6 animate-spin text-[var(--db-accent)]" />
               </div>
             ) : (
               <>
                 <textarea
                   value={prompt}
                   onChange={(e) => { setPrompt(e.target.value); setPromptError('') }}
-                  rows={22}
-                  className="w-full resize-y rounded-2xl border border-[#EAE1D3] bg-[#F6F3EE] px-5 py-4 font-mono text-sm leading-relaxed text-[#4A4A4A] outline-none transition-colors focus:border-[#D4A373] focus:ring-1 focus:ring-[#D4A373]/30"
+                  rows={14}
+                  className="w-full resize-y rounded-2xl border border-[var(--db-border)] bg-[var(--db-surface)] px-5 py-4 font-mono text-sm leading-relaxed text-[var(--db-ink-2)] outline-none transition-colors focus:border-[var(--db-accent)] focus:ring-1 focus:ring-[var(--db-accent)]/30 sm:min-h-[32rem]"
                   spellCheck={false}
                 />
                 {promptError && (
                   <p className="mt-2 text-xs text-red-500">{promptError}</p>
                 )}
                 {!templateId && !isDirty && (
-                  <p className="mt-2 text-xs italic text-[#B4AC9F]">
+                  <p className="mt-2 text-xs italic text-[var(--db-faint)]">
                     当前显示的是默认指令，编辑后点击「保存」即可存入数据库。
                   </p>
                 )}
@@ -330,32 +341,32 @@ export default function SettingsPage() {
 
           {/* ── Notion 集成 ── */}
           <section>
-            <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">Notion 集成</h2>
-            <p className="mb-6 max-w-md text-sm italic leading-relaxed text-[#8C7B6A]">
+            <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">Notion 集成</h2>
+            <p className="mb-6 max-w-md text-sm italic leading-relaxed text-[var(--db-muted)]">
               连接你的 Notion 工作区，将每篇日记一键同步到指定的 Database。
             </p>
 
             {notionMsg && (
-              <div className="mb-4 rounded-lg border border-[#EAE1D3] bg-[#F6F3EE] px-4 py-3 text-sm text-[#6B5C4C]">
+              <div className="mb-4 rounded-lg border border-[var(--db-border)] bg-[var(--db-surface)] px-4 py-3 text-sm text-[var(--db-ink-2)]">
                 {notionMsg}
               </div>
             )}
 
             {loadingNotion ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="h-5 w-5 animate-spin text-[#D4A373]" />
+                <Loader2 className="h-5 w-5 animate-spin text-[var(--db-accent)]" />
               </div>
             ) : !notionStatus?.connected ? (
               <a
                 href="/api/notion/oauth/start"
-                className="inline-flex items-center gap-2 rounded-full bg-[#D4A373] px-5 py-2 text-sm text-white transition-colors hover:bg-[#C39363]"
+                className="inline-flex items-center gap-2 rounded-full bg-[var(--db-accent)] px-5 py-2 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)]"
               >
                 <Link2 className="h-4 w-4" />
                 连接 Notion
               </a>
             ) : (
               <div className="space-y-5">
-                <div className="flex items-center gap-3 text-sm text-[#4A4A4A]">
+                <div className="flex items-center gap-3 text-sm text-[var(--db-ink-2)]">
                   {notionStatus.workspace_icon && (
                     <span aria-hidden className="text-xl leading-none">{notionStatus.workspace_icon}</span>
                   )}
@@ -365,7 +376,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={handleDisconnectNotion}
-                    className="ml-auto inline-flex items-center gap-1 text-xs text-[#8C7B6A] hover:text-red-600"
+                    className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--db-muted)] hover:text-red-600"
                   >
                     <Unlink className="h-3.5 w-3.5" />
                     断开
@@ -373,11 +384,11 @@ export default function SettingsPage() {
                 </div>
 
                 {notionStatus.data_source_id && notionStatus.data_source_title ? (
-                  <p className="text-sm text-[#6B5C4C]">
+                  <p className="text-sm text-[var(--db-ink-2)]">
                     目标 Database：<strong>{notionStatus.data_source_title}</strong>
                   </p>
                 ) : (
-                  <p className="text-sm italic text-[#B4AC9F]">
+                  <p className="text-sm italic text-[var(--db-faint)]">
                     还没有选择目标 Database——请先从下方列表选一个。
                   </p>
                 )}
@@ -387,7 +398,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={loadNotionDatabases}
                     disabled={loadingDatabases}
-                    className="rounded-full border border-[#EAE1D3] px-4 py-1.5 text-sm text-[#6B5C4C] transition-colors hover:border-[#D4A373]/50 hover:text-[#D4A373] disabled:opacity-50"
+                    className="rounded-full border border-[var(--db-border)] px-4 py-1.5 text-sm text-[var(--db-ink-2)] transition-colors hover:border-[var(--db-accent)]/50 hover:text-[var(--db-accent)] disabled:opacity-50"
                   >
                     {loadingDatabases ? '加载中…' : notionDatabases.length > 0 ? '刷新列表' : '加载我的 Database'}
                   </button>
@@ -397,7 +408,7 @@ export default function SettingsPage() {
                       <select
                         value={selectedDb}
                         onChange={(e) => setSelectedDb(e.target.value)}
-                        className="rounded-full border border-[#EAE1D3] bg-white px-4 py-1.5 text-sm text-[#4A4A4A] outline-none focus:border-[#D4A373]"
+                        className="rounded-full border border-[var(--db-border)] bg-[var(--db-card)] px-4 py-1.5 text-sm text-[var(--db-ink-2)] outline-none focus:border-[var(--db-accent)]"
                       >
                         <option value="">选择一个 Database…</option>
                         {notionDatabases.map((db) => (
@@ -408,7 +419,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={handleSelectDatabase}
                         disabled={!selectedDb || savingDb}
-                        className="rounded-full bg-[#D4A373] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[#C39363] disabled:opacity-50"
+                        className="rounded-full bg-[var(--db-accent)] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-50"
                       >
                         {savingDb ? '保存中…' : '绑定此 Database'}
                       </button>
@@ -416,7 +427,7 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                <p className="text-xs italic text-[#B4AC9F]">
+                <p className="text-xs italic text-[var(--db-faint)]">
                   提示：若列表为空，请回到 Notion 将目标 Database 分享给 DiaryBuddy Integration。
                 </p>
               </div>
@@ -425,13 +436,13 @@ export default function SettingsPage() {
 
           {/* ── 数据与归档 ── */}
           <section>
-            <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">数据与归档</h2>
-            <p className="mb-10 max-w-md text-sm italic leading-relaxed text-[#8C7B6A]">
+            <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">数据与归档</h2>
+            <p className="mb-10 max-w-md text-sm italic leading-relaxed text-[var(--db-muted)]">
               你的日记在这里静静沉淀，随时可以浏览，也可以随时带走。
             </p>
 
             {statusMsg && (
-              <div className="mb-6 rounded-lg border border-[#EAE1D3] bg-[#F6F3EE] px-4 py-3 text-sm text-[#6B5C4C]">
+              <div className="mb-6 rounded-lg border border-[var(--db-border)] bg-[var(--db-surface)] px-4 py-3 text-sm text-[var(--db-ink-2)]">
                 {statusMsg}
               </div>
             )}
@@ -441,10 +452,10 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleExport}
                 disabled={isExporting}
-                className="group flex w-full items-center space-x-4 border border-transparent px-4 py-3 text-left transition-all hover:border-[#EAE1D3] disabled:opacity-50"
+                className="group flex w-full items-center space-x-4 border border-transparent px-4 py-3 text-left transition-all hover:border-[var(--db-border)] disabled:opacity-50"
               >
-                <Archive className="h-5 w-5 text-[#B4AC9F] transition-colors group-hover:text-[#D4A373]" />
-                <span className="text-lg text-[#6B5C4C] transition-colors group-hover:text-[#2B2A27] sm:text-xl">
+                <Archive className="h-5 w-5 text-[var(--db-faint)] transition-colors group-hover:text-[var(--db-accent)]" />
+                <span className="text-lg text-[var(--db-ink-2)] transition-colors group-hover:text-[var(--db-ink)] sm:text-xl">
                   {isExporting ? '导出中……' : '导出归档到本地'}
                 </span>
               </button>
@@ -453,10 +464,10 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowClearConfirm(true)}
-                  className="group flex w-full items-center space-x-4 border border-transparent px-4 py-3 text-left transition-all hover:border-[#EAE1D3]"
+                  className="group flex w-full items-center space-x-4 border border-transparent px-4 py-3 text-left transition-all hover:border-[var(--db-border)]"
                 >
-                  <Trash2 className="h-5 w-5 text-[#B4AC9F] transition-colors group-hover:text-[#ba1a1a]" />
-                  <span className="text-lg text-[#6B5C4C] transition-colors group-hover:text-[#93000a] sm:text-xl">
+                  <Trash2 className="h-5 w-5 text-[var(--db-faint)] transition-colors group-hover:text-[#ba1a1a]" />
+                  <span className="text-lg text-[var(--db-ink-2)] transition-colors group-hover:text-[#93000a] sm:text-xl">
                     清除存储记录
                   </span>
                 </button>
@@ -471,7 +482,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => setShowClearConfirm(false)}
-                          className="rounded-full border border-[#EAE1D3] px-4 py-1.5 text-sm text-[#6B5C4C] hover:bg-white"
+                          className="rounded-full border border-[var(--db-border)] px-4 py-1.5 text-sm text-[var(--db-ink-2)] hover:bg-[var(--db-card)]"
                         >
                           取消
                         </button>
@@ -493,10 +504,25 @@ export default function SettingsPage() {
             </div>
           </section>
 
+          {/* ── 账号 ── */}
+          <section>
+            <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">账号</h2>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="group flex w-full items-center space-x-4 border border-transparent px-4 py-3 text-left transition-all hover:border-[var(--db-border)]"
+            >
+              <LogOut className="h-5 w-5 text-[var(--db-faint)] transition-colors group-hover:text-[var(--db-accent)]" />
+              <span className="text-lg text-[var(--db-ink-2)] transition-colors group-hover:text-[var(--db-ink)] sm:text-xl">
+                退出登录
+              </span>
+            </button>
+          </section>
+
           {/* ── 关于 ── */}
           <section>
-            <h2 className="mb-4 text-2xl italic text-[#4A4A4A]">关于</h2>
-            <div className="space-y-2 text-sm text-[#8C7B6A]">
+            <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">关于</h2>
+            <div className="space-y-2 text-sm text-[var(--db-muted)]">
               <p>AI 模型：Gemini 2.5 Flash</p>
               <p>存储：Supabase PostgreSQL</p>
               <p>框架：Next.js</p>
@@ -504,6 +530,7 @@ export default function SettingsPage() {
           </section>
         </div>
       </div>
+      <MobileBottomNav />
     </div>
   )
 }

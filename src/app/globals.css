@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  /* Legacy tokens — still referenced across the existing JSX, don't remove */
   --bg-cream: #FDFBF7;
   --bg-sidebar: #F6F3EE;
   --border-soft: #EAE1D3;
@@ -9,11 +10,78 @@
   --text-body: #4A4A4A;
   --text-muted: #8C7B6A;
   --text-faint: #B4AC9F;
+
+  /* DiaryBuddy Mobile design tokens (light) — from diary-tokens.css */
+  --db-bg: #FDFBF7;
+  --db-surface: #F6F3EE;
+  --db-surface-2: #fbf6ee;
+  --db-border: #EAE1D3;
+  --db-border-soft: #efe2d0;
+  --db-accent: #D4A373;
+  --db-accent-deep: #8C5F34;
+  --db-accent-dim: #C39363;
+  --db-ink: #2B2A27;
+  --db-ink-2: #4A4A4A;
+  --db-muted: #8C7B6A;
+  --db-faint: #B4AC9F;
+  --db-error: #b94a48;
+
+  /* Card / elevated surfaces (light = pure white; dark = warm charcoal) */
+  --db-card: #FFFFFF;
+
+  /* Typography stacks */
+  --db-serif: "Noto Serif SC", "Songti SC", "Source Han Serif SC", Georgia, "Iowan Old Style", serif;
+  --db-sans: "Inter", "HarmonyOS Sans", "PingFang SC", "Helvetica Neue", Helvetica, Roboto, system-ui, sans-serif;
+  --db-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
+
+  /* Safe-area insets (resolve to 0 on devices without notches) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* Dark-scheme variable overrides.
+   Components still need to opt in by reading var(--db-*); this block alone
+   does not change the rendered UI today, so desktop light remains untouched. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --db-bg: #16130f;
+    --db-surface: #1f1b17;
+    --db-surface-2: #251f1a;
+    --db-border: #352d23;
+    --db-border-soft: #3d3428;
+    --db-accent: #D4A373;
+    --db-accent-deep: #e5b88e;
+    --db-accent-dim: #b58a5c;
+    --db-ink: #f2ece0;
+    --db-ink-2: #dcd2c0;
+    --db-muted: #9b8b75;
+    --db-faint: #6b5f4e;
+    --db-card: #221d18;
+
+    /* Remap the legacy tokens that existing JSX still references so dark
+       mode works without a second pass of find/replace. */
+    --bg-cream: #16130f;
+    --bg-sidebar: #1f1b17;
+    --border-soft: #352d23;
+    --accent-brown: #D4A373;
+    --text-dark: #f2ece0;
+    --text-body: #dcd2c0;
+    --text-muted: #9b8b75;
+    --text-faint: #6b5f4e;
+  }
 }
 
 @theme inline {
   --color-background: var(--bg-cream);
   --color-foreground: var(--text-dark);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -23,6 +91,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-y: auto;
+  overscroll-behavior-y: none;
 }
 
 /* Scrollbar styling */
@@ -43,4 +112,28 @@ body {
 /* Selection color */
 ::selection {
   background: rgba(212, 163, 115, 0.3);
+}
+
+/* Safe-area utilities for mobile fixed-position bars (bottom nav, quick input) */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0px);
+}
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0px);
+}
+.pl-safe {
+  padding-left: calc(env(safe-area-inset-left, 0px) + 0px);
+}
+.pr-safe {
+  padding-right: calc(env(safe-area-inset-right, 0px) + 0px);
+}
+
+/* Touch-device affordances: make tap targets comfortable on phones without
+   affecting hover-only (desktop) devices. */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  [role="button"],
+  a {
+    touch-action: manipulation;
+  }
 }
