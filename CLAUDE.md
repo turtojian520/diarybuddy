@@ -26,6 +26,8 @@ The project is deployed on **Vercel**. All code changes go through GitHub → Ve
 3. Wait ~1–2 min for Vercel to auto-deploy.
 4. Verify on `https://diarybuddy.vercel.app`.
 
+**Auto-commit & push policy (standing user authorization):** after any code change in this repo, automatically `git add` the modified files, create a commit with a clear message, and `git push origin main` — without asking for confirmation each time. This applies to every change unless the user explicitly says otherwise for a specific change. Still: never `git add -A`/`git add .` (stage files by name), never force-push, never `--no-verify`, never commit `.env*` or other secrets.
+
 **Env vars are configured in Vercel**, not in a local `.env.local`, for production. See `Project → Settings → Environment Variables`. The list of required vars is in `.env.local.example`. All `.env*` files are in `.gitignore`.
 
 **Local `npm run dev` is only for offline debugging** — not the normal path. If you do need it, point a separate `.env.local` at a non-production Supabase/Notion integration so local sessions don't touch production data.

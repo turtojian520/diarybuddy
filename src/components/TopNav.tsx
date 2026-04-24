@@ -1,9 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { BookOpenText, FileText, History, LogOut } from 'lucide-react'
-import { createClient } from '@/lib/supabase/browser'
+import { usePathname } from 'next/navigation'
+import { BookOpenText, FileText, History } from 'lucide-react'
 
 const navItems = [
   { href: '/', label: '工作台', icon: BookOpenText },
@@ -13,13 +12,6 @@ const navItems = [
 
 export function TopNav() {
   const pathname = usePathname()
-  const router = useRouter()
-
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-50 hidden justify-center px-4 md:flex">
@@ -41,16 +33,6 @@ export function TopNav() {
             </Link>
           )
         })}
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          title="退出登录"
-          className="flex items-center gap-2 rounded-full px-3 py-2 text-sm text-[var(--db-ink-2)] transition-all hover:bg-[var(--db-surface)] hover:text-[var(--db-ink)] sm:px-4"
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">退出</span>
-        </button>
       </nav>
     </div>
   )
