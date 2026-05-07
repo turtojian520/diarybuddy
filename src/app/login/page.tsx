@@ -19,10 +19,11 @@ export default function LoginPage() {
     setError('')
 
     const supabase = createClient()
+    const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${appOrigin}/auth/callback`,
       },
     })
 
@@ -54,6 +55,9 @@ export default function LoginPage() {
             <p className="text-sm leading-relaxed text-[var(--db-muted)]">
               我们已将登录链接发送至 <strong className="text-[var(--db-ink-2)]">{email}</strong>，
               点击邮件中的链接即可登录，无需密码。
+            </p>
+            <p className="mt-3 text-xs italic text-[var(--db-faint)]">
+              首次使用会自动为你创建账号。
             </p>
             <button
               type="button"

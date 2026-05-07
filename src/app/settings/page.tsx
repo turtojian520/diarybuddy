@@ -50,6 +50,8 @@ const DEFAULT_PROMPT = `你是一位专业的 AI 日记助手。用户在一天�
 export default function SettingsPage() {
   const router = useRouter()
 
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -159,6 +161,9 @@ export default function SettingsPage() {
       else if (p === 'invalid') setNotionMsg('授权状态无效，请重试。')
       else if (p === 'error') setNotionMsg('连接 Notion 时出错，请重试。')
     }
+
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null))
   }, [])
 
   // Load template from Supabase on mount
@@ -507,6 +512,11 @@ export default function SettingsPage() {
           {/* ── 账号 ── */}
           <section>
             <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">账号</h2>
+            {userEmail && (
+              <p className="mb-2 px-4 text-sm text-[var(--db-muted)]">
+                当前登录：<strong className="text-[var(--db-ink-2)]">{userEmail}</strong>
+              </p>
+            )}
             <button
               type="button"
               onClick={handleSignOut}
