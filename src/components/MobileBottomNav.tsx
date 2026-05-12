@@ -16,8 +16,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="主导航"
-      className="fixed inset-x-0 bottom-0 z-40 flex h-14 items-stretch justify-around border-t border-[var(--db-border)] bg-[var(--db-bg)]/95 backdrop-blur md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="h5-bottom-nav fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-[var(--db-border)] bg-[var(--db-bg)]/95 backdrop-blur md:hidden"
     >
       {items.map(({ href, label, icon: Icon, match }) => {
         const active = match(pathname ?? '');

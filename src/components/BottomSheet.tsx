@@ -62,7 +62,7 @@ export function BottomSheet({
         ref={sheetRef}
         className="relative w-full max-w-xl animate-[sheet-in_220ms_ease-out] rounded-t-3xl border border-[var(--db-border)] bg-[var(--db-bg)] shadow-[0_-12px_40px_rgba(43,42,39,0.18)]"
         style={{
-          maxHeight: `${Math.round(maxHeightRatio * 100)}vh`,
+          maxHeight: `${Math.round(maxHeightRatio * 100)}dvh`,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
@@ -74,7 +74,7 @@ export function BottomSheet({
             {title}
           </div>
         ) : null}
-        <div className="overflow-y-auto px-5 pb-5 pt-2">{children}</div>
+        <div className="overflow-y-auto px-4 pb-5 pt-2 sm:px-5">{children}</div>
       </div>
       <style>{`
         @keyframes sheet-in {

@@ -262,7 +262,7 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--db-bg)] pt-6 text-[var(--db-ink)] md:pt-20 lg:h-screen lg:flex-row">
+    <div className="h5-page flex flex-col bg-[var(--db-bg)] pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-[var(--db-ink)] md:pt-20 lg:h-screen lg:flex-row">
       {/* 侧边栏 — 桌面 / 平板显示，手机隐藏 */}
       <aside className="hidden w-full flex-col justify-between border-b border-[var(--db-border)] bg-[var(--db-surface)] md:flex lg:w-72 lg:border-b-0 lg:border-r">
         <div>
@@ -303,11 +303,11 @@ function WorkspaceContent() {
       </aside>
 
       {/* 主内容区 */}
-      <main className="relative flex min-h-[calc(100vh-5rem)] flex-1 flex-col px-6 sm:px-10 lg:min-h-screen lg:px-20">
-        <header className="flex flex-col gap-6 border-b border-[var(--db-border)] py-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
+      <main className="relative flex min-h-[calc(100svh-5rem)] flex-1 flex-col px-4 sm:px-10 lg:min-h-screen lg:px-20">
+        <header className="flex flex-col gap-4 border-b border-[var(--db-border)] py-6 sm:gap-6 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="mb-2 flex items-center gap-2">
-              <h2 className="text-3xl font-normal text-[var(--db-ink)] sm:text-4xl">{displayDate}</h2>
+            <div className="mb-2 flex min-w-0 items-center gap-2">
+              <h2 className="min-w-0 text-2xl font-normal leading-tight text-[var(--db-ink)] sm:text-4xl">{displayDate}</h2>
               <div className="relative inline-flex">
                 <button
                   type="button"
@@ -355,7 +355,7 @@ function WorkspaceContent() {
           </div>
         </header>
 
-        <div className="flex-1 space-y-8 overflow-y-auto py-8 pb-44 sm:space-y-12 sm:py-10 md:pb-36">
+        <div className="h5-content-bottom-pad flex-1 space-y-7 overflow-y-auto py-6 sm:space-y-12 sm:py-10 md:pb-36">
           {/* 移动端：顶部 GenerateBanner（次动作入口，永远可见） */}
           <div className="md:hidden">
             <GenerateBanner
@@ -402,13 +402,13 @@ function WorkspaceContent() {
           {fragments.map((fragment) => {
             const isPending = fragment.id.startsWith('local-')
             return (
-            <div key={fragment.id} className="group relative flex gap-4 sm:gap-8">
-              <div className="w-20 shrink-0 pt-1 text-right sm:w-24">
+            <div key={fragment.id} className="group relative flex gap-3 pr-8 sm:gap-8 sm:pr-10">
+              <div className="w-14 shrink-0 pt-1 text-right sm:w-24">
                 <span className="text-xs uppercase tracking-wider text-[var(--db-muted)]">
                   {formatTime(fragment.created_at)}
                 </span>
               </div>
-              <div className={`flex-1 max-w-2xl text-base leading-loose sm:text-lg ${isPending ? 'text-[var(--db-muted)]' : 'text-[var(--db-ink-2)]'}`}>
+              <div className={`h5-text-wrap max-w-2xl flex-1 text-base leading-loose sm:text-lg ${isPending ? 'text-[var(--db-muted)]' : 'text-[var(--db-ink-2)]'}`}>
                 {fragment.content}
                 {isPending && (
                   <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs text-[var(--db-faint)]" title="离线中，恢复网络后自动同步">
@@ -417,11 +417,11 @@ function WorkspaceContent() {
                   </span>
                 )}
               </div>
-              <div className="absolute right-0 top-0 flex space-x-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute right-0 top-0 flex space-x-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => handleDelete(fragment.id)}
-                  className="text-xs text-[var(--db-muted)] hover:text-red-500 transition-colors"
+                  className="rounded-full p-1.5 text-xs text-[var(--db-muted)] transition-colors hover:text-red-500 active:bg-[var(--db-surface)]"
                   title={isPending ? '移除这条待同步碎片' : '删除此碎片'}
                 >
                   <Trash2 className="h-4 w-4" />

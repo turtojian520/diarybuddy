@@ -37,7 +37,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--db-bg)] px-4 text-[var(--db-ink)]">
+    <div className="h5-page h5-page-x flex flex-col items-center justify-center bg-[var(--db-bg)] py-[calc(env(safe-area-inset-top,0px)+2rem)] text-[var(--db-ink)]">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-12 flex flex-col items-center gap-3">
@@ -49,10 +49,10 @@ export default function LoginPage() {
         </div>
 
         {sent ? (
-          <div className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-8 py-10 text-center shadow-sm">
+          <div className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-5 py-8 text-center shadow-sm sm:px-8 sm:py-10">
             <Mail className="mx-auto mb-4 h-8 w-8 text-[var(--db-accent)]" />
             <h2 className="mb-2 text-lg text-[var(--db-ink)]">请查看你的邮箱</h2>
-            <p className="text-sm leading-relaxed text-[var(--db-muted)]">
+            <p className="h5-text-wrap text-sm leading-relaxed text-[var(--db-muted)]">
               我们已将登录链接发送至 <strong className="text-[var(--db-ink-2)]">{email}</strong>，
               点击邮件中的链接即可登录，无需密码。
             </p>
@@ -70,7 +70,7 @@ export default function LoginPage() {
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-8 py-10 shadow-sm"
+            className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-5 py-8 shadow-sm sm:px-8 sm:py-10"
           >
             <h2 className="mb-1 text-lg text-[var(--db-ink)]">登录</h2>
             <p className="mb-8 text-sm text-[var(--db-muted)]">

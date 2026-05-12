@@ -20,7 +20,7 @@ export function GenerateBanner({ count, isGenerating, onGenerate, compact }: Pro
     <div
       role="region"
       aria-label="生成日记"
-      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${
+      className={`flex items-center gap-3 rounded-2xl border px-3 py-3 sm:px-4 ${
         ready
           ? 'border-[var(--db-border-soft)] bg-[var(--db-surface-2)]'
           : 'border-[var(--db-border)] bg-[var(--db-surface)]'
@@ -46,7 +46,7 @@ export function GenerateBanner({ count, isGenerating, onGenerate, compact }: Pro
         type="button"
         onClick={onGenerate}
         disabled={!ready || isGenerating}
-        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+        className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors sm:px-3.5 ${
           ready
             ? 'bg-[var(--db-accent)] text-white shadow-[0_4px_14px_rgba(212,163,115,0.3)] hover:bg-[var(--db-accent-dim)]'
             : 'bg-[var(--db-border)] text-[var(--db-muted)]'

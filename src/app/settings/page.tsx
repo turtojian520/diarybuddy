@@ -263,7 +263,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-28 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
+    <div className="h5-page h5-page-x flex justify-center bg-[var(--db-bg)] pb-[calc(var(--db-mobile-nav-height)+env(safe-area-inset-bottom,0px)+2rem)] pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-2xl">
         <Link
           href="/"
@@ -273,8 +273,8 @@ export default function SettingsPage() {
           返回工作台
         </Link>
 
-        <header className="mb-16 text-center">
-          <h1 className="text-3xl font-normal tracking-wide text-[var(--db-ink)] sm:text-4xl">偏好设置</h1>
+        <header className="mb-12 text-center sm:mb-16">
+          <h1 className="text-3xl font-normal text-[var(--db-ink)] sm:text-4xl sm:tracking-wide">偏好设置</h1>
           <div className="mt-6 flex justify-center">
             <div className="h-px w-16 bg-[var(--db-accent)] opacity-60" />
           </div>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
 
           {/* ── 日记模板 ── */}
           <section>
-            <div className="mb-6 flex items-end justify-between">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-2xl italic text-[var(--db-ink-2)]">日记模板</h2>
                 <p className="mt-1 text-sm italic text-[var(--db-muted)]">
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               {!loadingPrompt && (
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   {isDirty && (
                     <button
                       type="button"
@@ -329,7 +329,7 @@ export default function SettingsPage() {
                   value={prompt}
                   onChange={(e) => { setPrompt(e.target.value); setPromptError('') }}
                   rows={14}
-                  className="w-full resize-y rounded-2xl border border-[var(--db-border)] bg-[var(--db-surface)] px-5 py-4 font-mono text-sm leading-relaxed text-[var(--db-ink-2)] outline-none transition-colors focus:border-[var(--db-accent)] focus:ring-1 focus:ring-[var(--db-accent)]/30 sm:min-h-[32rem]"
+                  className="w-full resize-y rounded-2xl border border-[var(--db-border)] bg-[var(--db-surface)] px-4 py-4 font-mono text-sm leading-relaxed text-[var(--db-ink-2)] outline-none transition-colors focus:border-[var(--db-accent)] focus:ring-1 focus:ring-[var(--db-accent)]/30 sm:min-h-[32rem] sm:px-5"
                   spellCheck={false}
                 />
                 {promptError && (
@@ -371,17 +371,17 @@ export default function SettingsPage() {
               </a>
             ) : (
               <div className="space-y-5">
-                <div className="flex items-center gap-3 text-sm text-[var(--db-ink-2)]">
+                <div className="flex min-w-0 flex-wrap items-center gap-3 text-sm text-[var(--db-ink-2)]">
                   {notionStatus.workspace_icon && (
                     <span aria-hidden className="text-xl leading-none">{notionStatus.workspace_icon}</span>
                   )}
-                  <span>
+                  <span className="h5-text-wrap min-w-0">
                     已连接到 <strong>{notionStatus.workspace_name ?? 'Notion'}</strong>
                   </span>
                   <button
                     type="button"
                     onClick={handleDisconnectNotion}
-                    className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--db-muted)] hover:text-red-600"
+                    className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-[var(--db-muted)] hover:text-red-600"
                   >
                     <Unlink className="h-3.5 w-3.5" />
                     断开
@@ -389,7 +389,7 @@ export default function SettingsPage() {
                 </div>
 
                 {notionStatus.data_source_id && notionStatus.data_source_title ? (
-                  <p className="text-sm text-[var(--db-ink-2)]">
+                  <p className="h5-text-wrap text-sm text-[var(--db-ink-2)]">
                     目标 Database：<strong>{notionStatus.data_source_title}</strong>
                   </p>
                 ) : (
@@ -398,7 +398,7 @@ export default function SettingsPage() {
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                   <button
                     type="button"
                     onClick={loadNotionDatabases}
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                       <select
                         value={selectedDb}
                         onChange={(e) => setSelectedDb(e.target.value)}
-                        className="rounded-full border border-[var(--db-border)] bg-[var(--db-card)] px-4 py-1.5 text-sm text-[var(--db-ink-2)] outline-none focus:border-[var(--db-accent)]"
+                        className="min-w-0 rounded-full border border-[var(--db-border)] bg-[var(--db-card)] px-4 py-2 text-sm text-[var(--db-ink-2)] outline-none focus:border-[var(--db-accent)] sm:py-1.5"
                       >
                         <option value="">选择一个 Database…</option>
                         {notionDatabases.map((db) => (
@@ -424,7 +424,7 @@ export default function SettingsPage() {
                         type="button"
                         onClick={handleSelectDatabase}
                         disabled={!selectedDb || savingDb}
-                        className="rounded-full bg-[var(--db-accent)] px-4 py-1.5 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-50"
+                        className="rounded-full bg-[var(--db-accent)] px-4 py-2 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-50 sm:py-1.5"
                       >
                         {savingDb ? '保存中…' : '绑定此 Database'}
                       </button>
@@ -480,10 +480,10 @@ export default function SettingsPage() {
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
-                    <div>
-                      <p className="text-sm font-medium text-red-800">此操作将永久删除数据库中的所有日记条目。</p>
-                      <p className="mt-1 text-xs text-red-600">此操作不可撤销，请先导出归档。</p>
-                      <div className="mt-4 flex gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-red-800">此操作将永久删除数据库中的所有日记条目。</p>
+                        <p className="mt-1 text-xs text-red-600">此操作不可撤销，请先导出归档。</p>
+                      <div className="mt-4 flex flex-wrap gap-3">
                         <button
                           type="button"
                           onClick={() => setShowClearConfirm(false)}
@@ -513,7 +513,7 @@ export default function SettingsPage() {
           <section>
             <h2 className="mb-4 text-2xl italic text-[var(--db-ink-2)]">账号</h2>
             {userEmail && (
-              <p className="mb-2 px-4 text-sm text-[var(--db-muted)]">
+              <p className="h5-text-wrap mb-2 px-4 text-sm text-[var(--db-muted)]">
                 当前登录：<strong className="text-[var(--db-ink-2)]">{userEmail}</strong>
               </p>
             )}

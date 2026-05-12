@@ -42,9 +42,9 @@ export default function HistoryPage() {
   })
 
   return (
-    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-28 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
+    <div className="h5-page h5-page-x flex justify-center bg-[var(--db-bg)] pb-[calc(var(--db-mobile-nav-height)+env(safe-area-inset-bottom,0px)+2rem)] pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-4xl">
-        <header className="mb-12 border-b border-[var(--db-border)] pb-4 sm:mb-20">
+        <header className="mb-10 border-b border-[var(--db-border)] pb-5 sm:mb-20">
           <div className="mb-6 flex items-center justify-between gap-4">
             <Link
               href="/"
@@ -56,20 +56,20 @@ export default function HistoryPage() {
             <p className="hidden text-xs uppercase tracking-[0.25em] text-[var(--db-faint)] sm:block">归档浏览</p>
           </div>
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="group relative flex-1 lg:max-w-md">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="搜索日记内容……"
-                className="w-full bg-transparent pl-8 text-lg text-[var(--db-ink-2)] outline-none placeholder:italic placeholder:text-[var(--db-faint)] sm:text-xl"
+                className="w-full rounded-none bg-transparent py-1 pl-8 text-base text-[var(--db-ink-2)] outline-none placeholder:italic placeholder:text-[var(--db-faint)] sm:text-xl"
               />
               <Search className="absolute left-0 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--db-faint)] transition-colors group-focus-within:text-[var(--db-accent)]" />
             </div>
 
-            <div className="flex items-center space-x-6 text-sm uppercase tracking-widest text-[var(--db-ink-2)]">
-              <button type="button" className="flex items-center space-x-2 font-semibold text-[var(--db-accent)]">
+            <div className="flex items-center gap-6 text-sm uppercase tracking-widest text-[var(--db-ink-2)]">
+              <button type="button" className="flex items-center gap-2 font-semibold text-[var(--db-accent)]">
                 <List className="h-4 w-4" />
                 <span className="border-b border-[var(--db-accent)] pb-0.5">列表</span>
               </button>
@@ -93,18 +93,18 @@ export default function HistoryPage() {
                     href={`/preview?date=${entry.session_date}`}
                     className="group block w-full cursor-pointer text-left"
                   >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-baseline md:gap-12">
-                      <div className="w-32 shrink-0">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:gap-12">
+                      <div className="shrink-0 md:w-32">
                         <h3 className="text-xl italic text-[var(--db-ink)]">{display}</h3>
                         <p className="mt-1 text-xs uppercase tracking-widest text-[var(--db-muted)]">{weekday}</p>
                       </div>
                       <div className="relative flex-1">
                         <div
-                          className={`absolute -left-4 top-2 h-1.5 w-1.5 rounded-full ${
+                          className={`absolute -left-4 top-2 hidden h-1.5 w-1.5 rounded-full md:block ${
                             entry.is_highlighted ? 'bg-[var(--db-accent)]' : 'border border-[var(--db-accent)]'
                           }`}
                         />
-                        <h4 className="mb-3 text-xl text-[var(--db-ink-2)] transition-colors group-hover:text-[var(--db-accent)] sm:text-2xl">
+                        <h4 className="h5-text-wrap mb-3 text-xl text-[var(--db-ink-2)] transition-colors group-hover:text-[var(--db-accent)] sm:text-2xl">
                           {entry.title}
                         </h4>
                       </div>

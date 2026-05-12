@@ -43,7 +43,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h4
           key={i}
-          className="mb-2 mt-6 text-base font-semibold text-[var(--db-ink-2)]"
+          className="h5-text-wrap mb-2 mt-6 text-base font-semibold text-[var(--db-ink-2)]"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(5)) }}
         />
       )
@@ -51,7 +51,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h3
           key={i}
-          className="mb-3 mt-8 text-lg font-semibold tracking-wide text-[var(--db-ink)]"
+          className="h5-text-wrap mb-3 mt-8 text-lg font-semibold text-[var(--db-ink)] sm:tracking-wide"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(4)) }}
         />
       )
@@ -59,7 +59,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h2
           key={i}
-          className="mb-6 mt-10 text-2xl font-normal italic text-[var(--db-ink)]"
+          className="h5-text-wrap mb-5 mt-8 text-xl font-normal italic text-[var(--db-ink)] sm:mb-6 sm:mt-10 sm:text-2xl"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(3)) }}
         />
       )
@@ -67,7 +67,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <h1
           key={i}
-          className="mb-8 text-3xl font-normal leading-snug tracking-tight text-[var(--db-ink)] sm:text-4xl"
+          className="h5-text-wrap mb-7 text-2xl font-normal leading-snug text-[var(--db-ink)] sm:mb-8 sm:text-4xl"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line.slice(2)) }}
         />
       )
@@ -77,7 +77,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <blockquote key={i} className="my-6 border-l-4 border-[var(--db-accent)] bg-[var(--db-surface)]/50 py-2 pl-6 sm:pl-8">
           <p
-            className="text-base italic leading-relaxed text-[var(--db-ink-2)] sm:text-lg"
+            className="h5-text-wrap text-base italic leading-relaxed text-[var(--db-ink-2)] sm:text-lg"
             dangerouslySetInnerHTML={{ __html: inlineHtml(line.replace(/^>\s*/, '')) }}
           />
         </blockquote>
@@ -97,7 +97,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <ol key={`ol-${i}`} className="ml-6 list-decimal space-y-4 text-base leading-relaxed text-[var(--db-ink-2)] sm:text-lg">
           {listItems.map((item, j) => (
-            <li key={j} className="pl-4" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
+            <li key={j} className="h5-text-wrap pl-2 sm:pl-4" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
         </ol>
       )
@@ -113,7 +113,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <ul key={`ul-${i}`} className="ml-6 list-disc space-y-3 text-base leading-relaxed text-[var(--db-ink-2)] sm:text-lg">
           {listItems.map((item, j) => (
-            <li key={j} className="pl-2" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
+            <li key={j} className="h5-text-wrap pl-1 sm:pl-2" dangerouslySetInnerHTML={{ __html: inlineHtml(item) }} />
           ))}
         </ul>
       )
@@ -128,7 +128,7 @@ function MarkdownBlock({ content }: { content: string }) {
       elements.push(
         <p
           key={i}
-          className="text-base leading-loose tracking-wide text-[var(--db-ink-2)] sm:text-lg sm:indent-8"
+          className="h5-text-wrap text-base leading-loose text-[var(--db-ink-2)] sm:text-lg sm:indent-8 sm:tracking-wide"
           dangerouslySetInnerHTML={{ __html: inlineHtml(line) }}
         />
       )
@@ -245,16 +245,16 @@ export default function PreviewPage() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[var(--db-bg)] px-4 pb-36 pt-8 text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
+    <div className="h5-page h5-page-x flex justify-center bg-[var(--db-bg)] pb-[calc(var(--db-mobile-nav-height)+var(--db-mobile-action-height)+env(safe-area-inset-bottom,0px)+2rem)] pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-3xl">
         {/* 顶部操作栏 — 桌面/平板保持原样，手机收起到底部 sticky 条 */}
-        <header className="mb-10 flex flex-col gap-6 sm:mb-16 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center space-x-4">
+        <header className="mb-8 flex flex-col gap-5 sm:mb-16 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <Link href="/" className="text-[var(--db-muted)] transition-colors hover:text-[var(--db-ink-2)]">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Bookmark className="h-4 w-4 text-[var(--db-accent)]" />
-            <span className="text-sm uppercase tracking-[0.2em] text-[var(--db-muted)]">已生成的日记</span>
+            <span className="truncate text-xs uppercase tracking-[0.16em] text-[var(--db-muted)] sm:text-sm sm:tracking-[0.2em]">已生成的日记</span>
           </div>
 
           {entry && (
@@ -336,7 +336,7 @@ export default function PreviewPage() {
               <>
                 <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">关键要点</h2>
+                  <h2 className="mb-6 text-2xl font-normal italic text-[var(--db-ink)] sm:mb-8">关键要点</h2>
                   <MarkdownBlock content={entry.key_points} />
                 </section>
               </>
@@ -346,7 +346,7 @@ export default function PreviewPage() {
               <>
                 <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">静思洞察</h2>
+                  <h2 className="mb-6 text-2xl font-normal italic text-[var(--db-ink)] sm:mb-8">静思洞察</h2>
                   <MarkdownBlock content={entry.mentor_insights} />
                 </section>
               </>
@@ -356,7 +356,7 @@ export default function PreviewPage() {
               <>
                 <hr className="border-dashed border-[var(--db-border)]" />
                 <section>
-                  <h2 className="mb-8 text-2xl font-normal italic text-[var(--db-ink)]">明日行动清单</h2>
+                  <h2 className="mb-6 text-2xl font-normal italic text-[var(--db-ink)] sm:mb-8">明日行动清单</h2>
                   {parseActionItems(entry.action_items).length > 0 ? (
                     <div className="space-y-5 text-base text-[var(--db-ink-2)] sm:text-lg">
                       {parseActionItems(entry.action_items).map((task, index) => {
@@ -366,14 +366,14 @@ export default function PreviewPage() {
                             key={task.text}
                             type="button"
                             onClick={() => toggleTask(index)}
-                            className="group flex items-start text-left"
+                            className="group flex w-full items-start text-left"
                           >
                             {isDone ? (
                               <CheckSquare className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[var(--db-accent)]" />
                             ) : (
                               <Square className="mr-4 mt-1.5 h-5 w-5 shrink-0 text-[var(--db-muted)] transition-colors group-hover:text-[var(--db-accent)]" />
                             )}
-                            <span className={`leading-relaxed ${isDone ? 'line-through text-[var(--db-muted)]' : ''}`}>
+                            <span className={`h5-text-wrap leading-relaxed ${isDone ? 'line-through text-[var(--db-muted)]' : ''}`}>
                               {task.text}
                             </span>
                           </button>
@@ -393,8 +393,7 @@ export default function PreviewPage() {
       {/* 手机端：底部 sticky 操作条（放在 MobileBottomNav 之上）*/}
       {entry && (
         <div
-          className="fixed inset-x-0 bottom-14 z-30 border-t border-[var(--db-border)] bg-[var(--db-bg)]/95 px-3 py-2 backdrop-blur md:hidden"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.25rem)' }}
+          className="h5-bottom-action fixed inset-x-0 z-30 border-t border-[var(--db-border)] bg-[var(--db-bg)]/95 px-3 py-2 backdrop-blur md:hidden"
         >
           <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
             <button

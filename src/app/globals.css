@@ -39,6 +39,8 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+  --db-mobile-nav-height: 3.5rem;
+  --db-mobile-action-height: 4rem;
 }
 
 /* Dark-scheme variable overrides.
@@ -82,6 +84,8 @@ html {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -90,6 +94,8 @@ body {
   font-family: var(--font-noto-serif-sc), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: none;
 }
@@ -128,6 +134,41 @@ body {
   padding-right: calc(env(safe-area-inset-right, 0px) + 0px);
 }
 
+.h5-page {
+  min-height: 100svh;
+}
+
+@supports (height: 100dvh) {
+  .h5-page {
+    min-height: 100dvh;
+  }
+}
+
+.h5-text-wrap {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.h5-bottom-nav {
+  height: calc(var(--db-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.h5-bottom-action {
+  bottom: calc(var(--db-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.h5-content-bottom-pad {
+  padding-bottom: calc(
+    var(--db-mobile-nav-height) + var(--db-mobile-action-height) + env(safe-area-inset-bottom, 0px) + 2.5rem
+  );
+}
+
+.h5-page-x {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
 /* Touch-device affordances: make tap targets comfortable on phones without
    affecting hover-only (desktop) devices. */
 @media (hover: none) and (pointer: coarse) {
@@ -135,5 +176,13 @@ body {
   [role="button"],
   a {
     touch-action: manipulation;
+  }
+}
+
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
   }
 }
