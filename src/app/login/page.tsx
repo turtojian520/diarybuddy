@@ -72,9 +72,9 @@ export default function LoginPage() {
             onSubmit={handleSubmit}
             className="rounded-2xl border border-[var(--db-border)] bg-[var(--db-card)] px-5 py-8 shadow-sm sm:px-8 sm:py-10"
           >
-            <h2 className="mb-1 text-lg text-[var(--db-ink)]">登录</h2>
+            <h2 className="mb-1 text-lg text-[var(--db-ink)]">欢迎</h2>
             <p className="mb-8 text-sm text-[var(--db-muted)]">
-              输入你的邮箱，我们将向你发送一个魔法登录链接。
+              输入邮箱即可登录或创建新账号，无需密码。
             </p>
 
             <div className="mb-6">

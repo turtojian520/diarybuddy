@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { BookOpenText, FileText, History } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { BookOpenText, FileText, History, LogOut, User } from 'lucide-react'
+import { createClient } from '@/lib/supabase/browser'
 
 const navItems = [
   { href: '/', label: '工作台', icon: BookOpenText },
@@ -12,27 +14,58 @@ const navItems = [
 
 export function TopNav() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [email, setEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setEmail(data.user.email ?? null)
+    })
+  }, [])
+
+  async function handleSignOut() {
+    await fetch('/auth/signout', { method: 'POST' })
+    router.push('/login')
+  }
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-50 hidden justify-center px-4 md:flex">
-      <nav className="pointer-events-auto flex w-full max-w-fit items-center gap-1 rounded-full border border-[var(--db-border)]/90 bg-[var(--db-card)]/90 p-1.5 shadow-[0_10px_35px_rgba(89,65,39,0.12)] backdrop-blur">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm transition-all sm:px-4 ${
-                isActive
-                  ? 'bg-[var(--db-accent)] text-white shadow-[0_8px_20px_rgba(212,163,115,0.3)]'
-                  : 'text-[var(--db-ink-2)] hover:bg-[var(--db-surface)] hover:text-[var(--db-ink)]'
-              }`}
+      <nav className="pointer-events-auto flex w-full max-w-2xl items-center justify-between gap-1 rounded-full border border-[var(--db-border)]/90 bg-[var(--db-card)]/90 p-1.5 shadow-[0_10px_35px_rgba(89,65,39,0.12)] backdrop-blur">
+        <div className="flex items-center gap-1">
+          {navItems.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm transition-all sm:px-4 ${
+                  isActive
+                    ? 'bg-[var(--db-accent)] text-white shadow-[0_8px_20px_rgba(212,163,115,0.3)]'
+                    : 'text-[var(--db-ink-2)] hover:bg-[var(--db-surface)] hover:text-[var(--db-ink)]'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{label}</span>
+              </Link>
+            )
+          })}
+        </div>
+
+        {email && (
+          <div className="flex items-center gap-2 pl-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-[var(--db-surface)] px-3 py-2 text-xs text-[var(--db-muted)]">
+              <User className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline max-w-[160px] truncate">{email}</span>
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs text-[var(--db-muted)] transition-colors hover:bg-red-50 hover:text-red-500"
             >
-              <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{label}</span>
-            </Link>
-          )
-        })}
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
       </nav>
     </div>
   )
