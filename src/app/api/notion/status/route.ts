@@ -8,15 +8,20 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const conn = await getNotionConnection()
-    if (!conn) return NextResponse.json({ connected: false })
+    const conn = await getNotionConnection(user.id)
+    if (!conn) {
+      return NextResponse.json(
+        { connected: false },
+        { headers: { 'Cache-Control': 'no-store' } },
+      )
+    }
     return NextResponse.json({
       connected: true,
       workspace_name: conn.workspace_name,
       workspace_icon: conn.workspace_icon,
       data_source_id: conn.data_source_id,
       data_source_title: conn.data_source_title,
-    })
+    }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[/api/notion/status] Error:', message)

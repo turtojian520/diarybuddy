@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid date format. Use YYYY-MM-DD.' }, { status: 400 })
     }
 
-    const conn = await getNotionConnection()
+    const conn = await getNotionConnection(user.id)
     if (!conn) {
       return NextResponse.json({ error: 'Not connected to Notion', needsConnect: true }, { status: 409 })
     }

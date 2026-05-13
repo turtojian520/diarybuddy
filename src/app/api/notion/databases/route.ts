@@ -10,7 +10,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const conn = await getNotionConnection()
+    const conn = await getNotionConnection(user.id)
     if (!conn) return NextResponse.json({ error: 'Not connected to Notion' }, { status: 409 })
 
     const notion = buildNotionClient(conn)
@@ -27,7 +27,7 @@ export async function GET() {
         return { id: ds.id, title: plain || '（未命名数据库）' }
       })
 
-    return NextResponse.json({ databases })
+    return NextResponse.json({ databases }, { headers: { 'Cache-Control': 'no-store' } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[/api/notion/databases] Error:', message)

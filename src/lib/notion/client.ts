@@ -18,11 +18,12 @@ export type NotionConnection = {
   updated_at: string
 }
 
-export async function getNotionConnection(): Promise<NotionConnection | null> {
+export async function getNotionConnection(userId: string): Promise<NotionConnection | null> {
   const supabase = await createSupabaseServer()
   const { data, error } = await supabase
     .from('notion_connections')
     .select('*')
+    .eq('user_id', userId)
     .maybeSingle()
   if (error) throw new Error(`Failed to load Notion connection: ${error.message}`)
   return (data ?? null) as NotionConnection | null

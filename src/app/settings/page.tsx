@@ -84,11 +84,12 @@ export default function SettingsPage() {
   async function refreshNotionStatus() {
     setLoadingNotion(true)
     try {
-      const res = await fetch('/api/notion/status')
+      const res = await fetch('/api/notion/status', { cache: 'no-store' })
       if (res.ok) {
         const data = (await res.json()) as NotionStatus
         setNotionStatus(data)
-        if (data.connected) setSelectedDb(data.data_source_id ?? '')
+        setSelectedDb(data.connected ? data.data_source_id ?? '' : '')
+        if (!data.connected) setNotionDatabases([])
       }
     } finally {
       setLoadingNotion(false)
@@ -99,7 +100,7 @@ export default function SettingsPage() {
     setLoadingDatabases(true)
     setNotionMsg('')
     try {
-      const res = await fetch('/api/notion/databases')
+      const res = await fetch('/api/notion/databases', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) {
         setNotionMsg(data.error ?? '加载失败')

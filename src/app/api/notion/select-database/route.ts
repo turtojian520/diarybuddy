@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'database_id required' }, { status: 400 })
     }
 
-    const conn = await getNotionConnection()
+    const conn = await getNotionConnection(user.id)
     if (!conn) return NextResponse.json({ error: 'Not connected to Notion' }, { status: 409 })
 
     const notion = buildNotionClient(conn)
