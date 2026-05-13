@@ -262,9 +262,9 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="h5-page flex flex-col bg-[var(--db-bg)] pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-[var(--db-ink)] md:pt-20 lg:h-screen lg:flex-row">
+    <div className="h5-page flex flex-col bg-[var(--db-bg)] pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-[var(--db-ink)] md:pt-20 lg:h-screen lg:flex-row lg:pt-0">
       {/* 侧边栏 — 桌面 / 平板显示，手机隐藏 */}
-      <aside className="hidden w-full flex-col justify-between border-b border-[var(--db-border)] bg-[var(--db-surface)] md:flex lg:w-72 lg:border-b-0 lg:border-r">
+      <aside className="hidden w-full flex-col justify-between border-b border-[var(--db-border)] bg-[var(--db-surface)] md:flex lg:h-screen lg:w-72 lg:border-b-0 lg:border-r">
         <div>
           <div className="px-6 pb-4 pt-8 sm:px-8">
             <h1 className="text-3xl font-bold italic tracking-tight text-[var(--db-ink-2)]">Diarybuddy</h1>
@@ -303,7 +303,7 @@ function WorkspaceContent() {
       </aside>
 
       {/* 主内容区 */}
-      <main className="relative flex min-h-[calc(100svh-5rem)] flex-1 flex-col px-4 sm:px-10 lg:min-h-screen lg:px-20">
+      <main className="relative flex min-h-[calc(100svh-5rem)] flex-1 flex-col px-4 sm:px-10 lg:min-h-screen lg:px-20 lg:pt-20">
         <header className="flex flex-col gap-4 border-b border-[var(--db-border)] py-6 sm:gap-6 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-2 flex min-w-0 items-center gap-2">
@@ -347,7 +347,7 @@ function WorkspaceContent() {
             </Link>
             <Link
               href={`/preview?date=${todayDate || getTodayDate()}`}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--db-ink)] px-4 py-2 text-sm text-white transition-colors hover:bg-[var(--db-ink)]"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--db-accent)] px-4 py-2 text-sm text-white transition-colors hover:bg-[var(--db-accent-dim)]"
             >
               <BookText className="h-4 w-4" />
               打开已生成日记
