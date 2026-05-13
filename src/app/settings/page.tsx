@@ -263,7 +263,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="h5-page h5-page-x flex justify-center bg-[var(--db-bg)] pb-[calc(var(--db-mobile-nav-height)+env(safe-area-inset-bottom,0px)+2rem)] pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
+    <div className="h5-page h5-page-x flex flex-col items-center bg-[var(--db-bg)] pb-[calc(var(--db-mobile-nav-height)+env(safe-area-inset-bottom,0px)+2rem)] pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] text-[var(--db-ink)] sm:px-6 md:pb-20 md:pt-24 lg:pb-32">
       <div className="w-full max-w-2xl">
         <Link
           href="/"
