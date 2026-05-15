@@ -7,7 +7,13 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 // Build the prompt for diary generation
 function buildPrompt(
-  fragments: Array<{ content: string; created_at: string }>,
+  fragments: Array<{
+    content: string
+    created_at: string
+    attachment_name?: string | null
+    attachment_type?: string | null
+    attachment_summary?: string | null
+  }>,
   date: string,
   templateInstructions?: string,
 ): string {
@@ -18,7 +24,14 @@ function buildPrompt(
         minute: '2-digit',
         hour12: false,
       })
-      return `[${i + 1}] ${time}: ${f.content}`
+      const text = f.content?.trim() || '(仅附件，无文字说明)'
+      const lines = [`[${i + 1}] ${time}: ${text}`]
+      if (f.attachment_name && f.attachment_summary) {
+        lines.push(`    📎 附件「${f.attachment_name}」简介：${f.attachment_summary}`)
+      } else if (f.attachment_name) {
+        lines.push(`    📎 附件「${f.attachment_name}」（无简介）`)
+      }
+      return lines.join('\n')
     })
     .join('\n\n')
 

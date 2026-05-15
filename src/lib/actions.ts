@@ -35,8 +35,27 @@ export async function getFragmentsByDate(date: string): Promise<DiaryFragment[]>
 
 export async function deleteFragment(id: string): Promise<void> {
   const supabase = await createClient()
+
+  const { data: row } = await supabase
+    .from('diary_fragments')
+    .select('attachment_url')
+    .eq('id', id)
+    .maybeSingle()
+
   const { error } = await supabase.from('diary_fragments').delete().eq('id', id)
   if (error) throw new Error(`Failed to delete fragment: ${error.message}`)
+
+  // If this fragment carried an uploaded file, remove it from Storage too.
+  // Path format: {user_id}/{timestamp}_{name}
+  const url = row?.attachment_url
+  if (url) {
+    const marker = '/storage/v1/object/public/attachments/'
+    const idx = url.indexOf(marker)
+    if (idx !== -1) {
+      const path = decodeURIComponent(url.slice(idx + marker.length))
+      await supabase.storage.from('attachments').remove([path])
+    }
+  }
 }
 
 // ── Diary Entry Actions ───────────────────────────────────────────────────────

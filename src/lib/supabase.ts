@@ -11,6 +11,10 @@ export type DiaryFragment = {
   content: string
   created_at: string
   session_date: string  // YYYY-MM-DD, groups fragments by day
+  attachment_url: string | null
+  attachment_name: string | null
+  attachment_type: string | null  // MIME, e.g. "image/png"
+  attachment_summary: string | null  // Gemini-generated summary; null while pending
 }
 
 export type DiaryEntry = {

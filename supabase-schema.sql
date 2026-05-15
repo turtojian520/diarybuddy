@@ -139,3 +139,45 @@ create policy "Users can update their own notion connection"
 create policy "Users can delete their own notion connection"
   on notion_connections for delete
   using (auth.uid() = user_id);
+
+-- ============================================================
+-- STEP 8: Attachment columns on diary_fragments
+--   A fragment can now optionally carry one uploaded file
+--   (image / pdf / audio / text) with a Gemini-generated summary.
+-- ============================================================
+
+alter table diary_fragments
+  add column if not exists attachment_url text,
+  add column if not exists attachment_name text,
+  add column if not exists attachment_type text,
+  add column if not exists attachment_summary text;
+
+-- ============================================================
+-- STEP 9: Storage bucket + RLS for `attachments`
+--   Files are namespaced by user_id as the first folder segment,
+--   so RLS can scope every operation to the owner.
+--
+--   Manual prerequisite: in Supabase Dashboard → Storage,
+--   create a public bucket named "attachments".
+-- ============================================================
+
+create policy "Users can upload to their own attachments folder"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'attachments'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "Users can read their own attachments"
+  on storage.objects for select to authenticated
+  using (
+    bucket_id = 'attachments'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "Users can delete their own attachments"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'attachments'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );

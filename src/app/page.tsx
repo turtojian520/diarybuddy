@@ -12,6 +12,7 @@ import { GenerateBanner } from '@/components/GenerateBanner'
 import { MobileBottomNav } from '@/components/MobileBottomNav'
 import { MobileQuickInputBar } from '@/components/MobileQuickInputBar'
 import { InstallPrompt } from '@/components/InstallPrompt'
+import { AttachmentCard } from '@/components/AttachmentCard'
 import {
   enqueue as enqueueOffline,
   generateLocalId,
@@ -41,6 +42,8 @@ function WorkspaceContent() {
   const inputRef = useRef<HTMLInputElement>(null)
   const mobileSheetInputRef = useRef<HTMLInputElement>(null)
   const dateInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const mobileFileInputRef = useRef<HTMLInputElement>(null)
   const searchParams = useSearchParams()
 
   function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -200,6 +203,42 @@ function WorkspaceContent() {
       setFragments((prev) => prev.filter((f) => f.id !== id))
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : '删除失败。')
+    }
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = '' // allow re-selecting the same file later
+    if (!todayDate) return
+
+    const placeholderId = `pending-upload-${Date.now()}`
+    const placeholder = {
+      id: placeholderId,
+      content: '',
+      created_at: new Date().toISOString(),
+      session_date: todayDate,
+      attachment_url: '',
+      attachment_name: file.name,
+      attachment_type: file.type,
+      attachment_summary: null,
+    } as unknown as DiaryFragment
+    setFragments((prev) => [...prev, placeholder])
+    setMobileSheetOpen(false)
+
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('session_date', todayDate)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? '上传失败')
+      setFragments((prev) =>
+        prev.map((f) => (f.id === placeholderId ? (data.fragment as DiaryFragment) : f)),
+      )
+    } catch (err) {
+      setFragments((prev) => prev.filter((f) => f.id !== placeholderId))
+      setErrorMsg(err instanceof Error ? err.message : '上传失败。')
     }
   }
 
@@ -401,6 +440,8 @@ function WorkspaceContent() {
 
           {fragments.map((fragment) => {
             const isPending = fragment.id.startsWith('local-')
+            const isUploading = fragment.id.startsWith('pending-upload-')
+            const hasAttachment = !!fragment.attachment_name
             return (
             <div key={fragment.id} className="group relative flex gap-3 pr-8 sm:gap-8 sm:pr-10">
               <div className="w-14 shrink-0 pt-1 text-right sm:w-24">
@@ -408,21 +449,36 @@ function WorkspaceContent() {
                   {formatTime(fragment.created_at)}
                 </span>
               </div>
-              <div className={`h5-text-wrap max-w-2xl flex-1 text-base leading-loose sm:text-lg ${isPending ? 'text-[var(--db-muted)]' : 'text-[var(--db-ink-2)]'}`}>
-                {fragment.content}
+              <div className={`h5-text-wrap max-w-2xl flex-1 text-base leading-loose sm:text-lg ${isPending || isUploading ? 'text-[var(--db-muted)]' : 'text-[var(--db-ink-2)]'}`}>
+                {fragment.content && <span>{fragment.content}</span>}
                 {isPending && (
                   <span className="ml-2 inline-flex items-center gap-1 align-middle text-xs text-[var(--db-faint)]" title="离线中，恢复网络后自动同步">
                     <CloudOff className="h-3 w-3" aria-hidden />
                     待同步
                   </span>
                 )}
+                {isUploading && (
+                  <span className="inline-flex items-center gap-1 text-xs italic text-[var(--db-faint)]">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    正在上传 {fragment.attachment_name}……
+                  </span>
+                )}
+                {hasAttachment && !isUploading && fragment.attachment_url && (
+                  <AttachmentCard
+                    url={fragment.attachment_url}
+                    name={fragment.attachment_name ?? ''}
+                    mimeType={fragment.attachment_type ?? ''}
+                    summary={fragment.attachment_summary}
+                  />
+                )}
               </div>
               <div className="absolute right-0 top-0 flex space-x-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => handleDelete(fragment.id)}
-                  className="rounded-full p-1.5 text-xs text-[var(--db-muted)] transition-colors hover:text-red-500 active:bg-[var(--db-surface)]"
-                  title={isPending ? '移除这条待同步碎片' : '删除此碎片'}
+                  disabled={isUploading}
+                  className="rounded-full p-1.5 text-xs text-[var(--db-muted)] transition-colors hover:text-red-500 active:bg-[var(--db-surface)] disabled:opacity-30"
+                  title={isUploading ? '上传中，请稍候' : isPending ? '移除这条待同步碎片' : '删除此碎片'}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -448,11 +504,19 @@ function WorkspaceContent() {
               </button>
               <button
                 type="button"
+                onClick={() => fileInputRef.current?.click()}
                 className="rounded-full p-2 text-[var(--db-muted)] transition-colors hover:bg-[var(--db-surface)] hover:text-[var(--db-accent)]"
-                title="附件（即将上线）"
+                title="上传文件 / 图片"
               >
                 <Paperclip className="h-5 w-5" />
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf,audio/*,text/*,.md,.txt"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
             </div>
 
             <input
@@ -525,13 +589,30 @@ function WorkspaceContent() {
             <p className="text-sm text-[var(--db-error)]">{errorMsg}</p>
           )}
           <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={() => setMobileSheetOpen(false)}
-              className="rounded-full px-4 py-2 text-sm text-[var(--db-muted)]"
-            >
-              取消
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setMobileSheetOpen(false)}
+                className="rounded-full px-4 py-2 text-sm text-[var(--db-muted)]"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => mobileFileInputRef.current?.click()}
+                className="rounded-full p-2 text-[var(--db-muted)] transition-colors hover:bg-[var(--db-surface)] hover:text-[var(--db-accent)]"
+                title="上传文件 / 图片"
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+              <input
+                ref={mobileFileInputRef}
+                type="file"
+                accept="image/*,application/pdf,audio/*,text/*,.md,.txt"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </div>
             <button
               type="submit"
               disabled={isSubmitting || !inputValue.trim()}
