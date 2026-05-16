@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getTodayDate } from '@/lib/utils'
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10 MB
 const BUCKET = 'attachments'
+const MAX_SUMMARY_BYTES = 18 * 1024 * 1024 // Gemini inline data soft cap
 
 function isAllowedMime(mime: string): boolean {
   return (
@@ -32,6 +32,16 @@ function summaryPromptFor(mime: string): string {
   return '请用一段简短中文（约 80-150 字）总结这份内容。请直接给出总结，不要寒暄。'
 }
 
+type Body = {
+  storage_path: string
+  attachment_url: string
+  attachment_name: string
+  attachment_type: string
+  session_date?: string
+  content?: string
+  file_size?: number
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -39,74 +49,59 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let formData: FormData
+  let body: Body
   try {
-    formData = await request.formData()
+    body = (await request.json()) as Body
   } catch {
-    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const file = formData.get('file')
-  const sessionDateRaw = formData.get('session_date')
-  const caption = (formData.get('content') as string | null)?.trim() ?? ''
-
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: '缺少文件。' }, { status: 400 })
+  const { storage_path, attachment_url, attachment_name, attachment_type } = body
+  if (!storage_path || !attachment_url || !attachment_name || !attachment_type) {
+    return NextResponse.json({ error: '缺少必要字段。' }, { status: 400 })
   }
-  if (file.size === 0) {
-    return NextResponse.json({ error: '文件为空。' }, { status: 400 })
-  }
-  if (file.size > MAX_FILE_BYTES) {
-    return NextResponse.json({ error: '文件超过 10MB 上限。' }, { status: 413 })
-  }
-  if (!isAllowedMime(file.type)) {
+  if (!isAllowedMime(attachment_type)) {
     return NextResponse.json(
-      { error: `不支持的文件类型：${file.type || '未知'}。仅接受图片 / PDF / 音频 / 文本。` },
+      { error: `不支持的文件类型：${attachment_type}。仅接受图片 / PDF / 音频 / 文本。` },
       { status: 415 },
     )
   }
-
-  const sessionDate =
-    typeof sessionDateRaw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(sessionDateRaw)
-      ? sessionDateRaw
-      : getTodayDate()
-
-  const safeName = file.name.replace(/[^\w.\-]+/g, '_').slice(0, 80) || 'file'
-  const path = `${user.id}/${Date.now()}_${safeName}`
-
-  const bytes = new Uint8Array(await file.arrayBuffer())
-
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, bytes, {
-      contentType: file.type,
-      cacheControl: '3600',
-      upsert: false,
-    })
-
-  if (uploadError) {
-    return NextResponse.json(
-      { error: `上传失败：${uploadError.message}` },
-      { status: 500 },
-    )
+  // Enforce the path namespace so a client can't claim someone else's file.
+  if (!storage_path.startsWith(`${user.id}/`)) {
+    return NextResponse.json({ error: '路径不属于当前用户。' }, { status: 403 })
   }
 
-  const { data: publicUrlData } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  const publicUrl = publicUrlData.publicUrl
+  const sessionDate =
+    body.session_date && /^\d{4}-\d{2}-\d{2}$/.test(body.session_date)
+      ? body.session_date
+      : getTodayDate()
+  const caption = body.content?.trim() ?? ''
 
+  // Generate Gemini summary — pull the file back from Storage server-side.
+  // Skip for files too large for inline_data; record a placeholder instead.
   let summary = ''
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured')
+    if ((body.file_size ?? 0) > MAX_SUMMARY_BYTES) {
+      summary = '（文件较大，未生成 AI 简介）'
+    } else {
+      if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured')
+
+      const { data: blob, error: dlError } = await supabase.storage
+        .from(BUCKET)
+        .download(storage_path)
+      if (dlError || !blob) throw new Error(dlError?.message ?? '无法读取上传的文件')
+
+      const bytes = new Uint8Array(await blob.arrayBuffer())
+      const base64 = Buffer.from(bytes).toString('base64')
+
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+      const result = await model.generateContent([
+        { inlineData: { data: base64, mimeType: attachment_type } },
+        { text: summaryPromptFor(attachment_type) },
+      ])
+      summary = result.response.text().trim()
     }
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
-    const base64 = Buffer.from(bytes).toString('base64')
-    const result = await model.generateContent([
-      { inlineData: { data: base64, mimeType: file.type } },
-      { text: summaryPromptFor(file.type) },
-    ])
-    summary = result.response.text().trim()
   } catch (err) {
     summary = `（AI 简介生成失败：${err instanceof Error ? err.message : '未知错误'}）`
   }
@@ -116,16 +111,16 @@ export async function POST(request: NextRequest) {
     .insert({
       content: caption,
       session_date: sessionDate,
-      attachment_url: publicUrl,
-      attachment_name: file.name,
-      attachment_type: file.type,
+      attachment_url,
+      attachment_name,
+      attachment_type,
       attachment_summary: summary,
     })
     .select()
     .single()
 
   if (insertError) {
-    await supabase.storage.from(BUCKET).remove([path])
+    await supabase.storage.from(BUCKET).remove([storage_path])
     return NextResponse.json(
       { error: `保存碎片失败：${insertError.message}` },
       { status: 500 },

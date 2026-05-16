@@ -91,19 +91,19 @@ export default function LoginPage() {
 
             <form onSubmit={handleVerifyCode}>
               <label htmlFor="code" className="mb-2 block text-xs uppercase tracking-widest text-[var(--db-muted)]">
-                输入 6 位验证码
+                输入邮件中的验证码
               </label>
               <input
                 id="code"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                maxLength={6}
-                pattern="[0-9]{6}"
+                maxLength={8}
+                pattern="[0-9]{6,8}"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 placeholder="••••••"
-                className="mb-3 w-full rounded-lg border border-[var(--db-border)] bg-[var(--db-bg)] px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-[var(--db-ink-2)] outline-none placeholder:text-[var(--db-faint)] focus:border-[var(--db-accent)] focus:ring-2 focus:ring-[var(--db-accent)]/20"
+                className="mb-3 w-full rounded-lg border border-[var(--db-border)] bg-[var(--db-bg)] px-4 py-3 text-center text-2xl font-mono tracking-[0.4em] text-[var(--db-ink-2)] outline-none placeholder:text-[var(--db-faint)] focus:border-[var(--db-accent)] focus:ring-2 focus:ring-[var(--db-accent)]/20"
                 autoFocus
               />
 
@@ -113,7 +113,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={isVerifying || code.length !== 6}
+                disabled={isVerifying || code.length < 6}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--db-accent)] py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[var(--db-accent-dim)] disabled:opacity-50"
               >
                 {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}

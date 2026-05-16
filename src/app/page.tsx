@@ -7,6 +7,7 @@ import { Mic, Paperclip, Sparkles, BookText, ArrowRight, Settings, Trash2, Loade
 import { addFragment, getFragmentsByDate, deleteFragment } from '@/lib/actions'
 import { getTodayDate } from '@/lib/utils'
 import type { DiaryFragment } from '@/lib/supabase'
+import { createClient as createSupabaseBrowserClient } from '@/lib/supabase/browser'
 import { BottomSheet } from '@/components/BottomSheet'
 import { GenerateBanner } from '@/components/GenerateBanner'
 import { MobileBottomNav } from '@/components/MobileBottomNav'
@@ -212,6 +213,12 @@ function WorkspaceContent() {
     e.target.value = '' // allow re-selecting the same file later
     if (!todayDate) return
 
+    const MAX_BYTES = 10 * 1024 * 1024
+    if (file.size > MAX_BYTES) {
+      setErrorMsg('文件超过 10MB 上限。')
+      return
+    }
+
     const placeholderId = `pending-upload-${Date.now()}`
     const placeholder = {
       id: placeholderId,
@@ -227,12 +234,41 @@ function WorkspaceContent() {
     setMobileSheetOpen(false)
 
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      fd.append('session_date', todayDate)
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const supabase = createSupabaseBrowserClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('请先登录。')
+
+      const safeName = file.name.replace(/[^\w.\-]+/g, '_').slice(0, 80) || 'file'
+      const storagePath = `${user.id}/${Date.now()}_${safeName}`
+
+      // Step 1: client-direct upload to Storage (bypasses Vercel body limit)
+      const { error: upErr } = await supabase.storage
+        .from('attachments')
+        .upload(storagePath, file, { contentType: file.type, upsert: false })
+      if (upErr) throw new Error(`上传失败：${upErr.message}`)
+
+      const { data: publicData } = supabase.storage
+        .from('attachments')
+        .getPublicUrl(storagePath)
+
+      // Step 2: ask server to generate summary + insert fragment row
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storage_path: storagePath,
+          attachment_url: publicData.publicUrl,
+          attachment_name: file.name,
+          attachment_type: file.type,
+          file_size: file.size,
+          session_date: todayDate,
+        }),
+      })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? '上传失败')
+      if (!res.ok) {
+        await supabase.storage.from('attachments').remove([storagePath])
+        throw new Error(data.error ?? '上传失败')
+      }
       setFragments((prev) =>
         prev.map((f) => (f.id === placeholderId ? (data.fragment as DiaryFragment) : f)),
       )
