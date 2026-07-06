@@ -19,6 +19,7 @@ export type DiaryFragment = {
 
 export type DiaryEntry = {
   id: string
+  user_id: string
   session_date: string  // YYYY-MM-DD
   title: string
   full_diary: string    // Complete diary narrative (markdown)

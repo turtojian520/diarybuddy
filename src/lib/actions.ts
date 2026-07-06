@@ -73,13 +73,16 @@ export async function getDiaryEntry(date: string): Promise<DiaryEntry | null> {
   return data as DiaryEntry | null
 }
 
-export async function saveDiaryEntry(entry: Omit<DiaryEntry, 'id' | 'generated_at'>): Promise<DiaryEntry> {
+export async function saveDiaryEntry(entry: Omit<DiaryEntry, 'id' | 'user_id' | 'generated_at'>): Promise<DiaryEntry> {
   const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) throw new Error('Not authenticated')
 
   const { data, error } = await supabase
     .from('diary_entries')
     .upsert(
-      { ...entry, generated_at: new Date().toISOString() },
+      { ...entry, user_id: user.id, generated_at: new Date().toISOString() },
       { onConflict: 'session_date' }
     )
     .select()
