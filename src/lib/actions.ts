@@ -83,7 +83,7 @@ export async function saveDiaryEntry(entry: Omit<DiaryEntry, 'id' | 'user_id' | 
     .from('diary_entries')
     .upsert(
       { ...entry, user_id: user.id, generated_at: new Date().toISOString() },
-      { onConflict: 'session_date' }
+      { onConflict: 'session_date,user_id' }
     )
     .select()
     .single()
