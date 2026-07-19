@@ -11,18 +11,18 @@ type Props = {
   summary: string | null
 }
 
-function pickIcon(mime: string) {
-  if (mime.startsWith('image/')) return ImageIcon
-  if (mime === 'application/pdf') return FileText
-  if (mime.startsWith('audio/')) return FileAudio
-  if (mime.startsWith('text/')) return FileText
-  return File
+function renderIcon(mime: string) {
+  const className = 'h-6 w-6'
+  if (mime.startsWith('image/')) return <ImageIcon className={className} />
+  if (mime === 'application/pdf') return <FileText className={className} />
+  if (mime.startsWith('audio/')) return <FileAudio className={className} />
+  if (mime.startsWith('text/')) return <FileText className={className} />
+  return <File className={className} />
 }
 
 export function AttachmentCard({ url, name, mimeType, summary }: Props) {
   const [expanded, setExpanded] = useState(false)
   const isImage = mimeType.startsWith('image/')
-  const Icon = pickIcon(mimeType)
   const pending = summary === null
 
   return (
@@ -43,7 +43,7 @@ export function AttachmentCard({ url, name, mimeType, summary }: Props) {
           />
         ) : (
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-[var(--db-card)] text-[var(--db-accent)]">
-            <Icon className="h-6 w-6" />
+            {renderIcon(mimeType)}
           </div>
         )}
         <div className="flex min-w-0 flex-1 flex-col justify-center">

@@ -150,14 +150,6 @@ export default function PreviewPage() {
   const [notionState, setNotionState] = useState<'idle' | 'loading' | 'done'>('idle')
   const [notionMsg, setNotionMsg] = useState('')
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const dateParam = params.get('date')
-    const date = dateParam ?? getTodayDate()
-    setViewDate(date)
-    loadEntry(date)
-  }, [])
-
   const loadEntry = useCallback(async (date: string) => {
     setIsLoading(true)
     try {
@@ -173,6 +165,14 @@ export default function PreviewPage() {
       setIsLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const dateParam = params.get('date')
+    const date = dateParam ?? getTodayDate()
+    setViewDate(date)
+    void loadEntry(date)
+  }, [loadEntry])
 
   function toggleTask(index: number) {
     setTaskStates((prev) => prev.map((v, i) => (i === index ? !v : v)))

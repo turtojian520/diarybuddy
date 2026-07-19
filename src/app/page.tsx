@@ -38,7 +38,6 @@ function WorkspaceContent() {
   const [errorMsg, setErrorMsg] = useState('')
   const [todayDate, setTodayDate] = useState('')
   const [displayDate, setDisplayDate] = useState('')
-  const [diaryGenerated, setDiaryGenerated] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const mobileSheetInputRef = useRef<HTMLInputElement>(null)
@@ -300,8 +299,6 @@ function WorkspaceContent() {
       // so the next time the user opens the workspace they start fresh on today.
       const realToday = getTodayDate()
       sessionStorage.setItem('workspaceSessionDate', realToday)
-      setDiaryGenerated(true)
-
       // Pass the date so preview loads the correct entry (not always "today")
       window.location.href = `/preview?date=${todayDate}`
     } catch (err) {
