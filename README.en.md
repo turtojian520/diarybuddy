@@ -140,7 +140,7 @@ flowchart LR
         W["/ workspace<br/><sub>fragment capture</sub>"]
         P["/preview<br/><sub>4-part diary + sync</sub>"]
         HS["/history · /settings<br/><sub>archive · prompts</sub>"]
-        MW["middleware.ts · Supabase auth guard<br/><sub>refreshes session cookie · redirects to /login</sub>"]
+        MW["proxy.ts · Supabase auth guard<br/><sub>refreshes session cookie · redirects to /login</sub>"]
         W --- P --- HS
         W --> MW
         P --> MW
@@ -212,7 +212,7 @@ npm run build  # type + lint check (no test framework)
 ```text
 diarybuddy/                       # repo root — package.json lives here
 ├── src/
-│   ├── middleware.ts             # Supabase auth guard (redirects unauth → /login)
+│   ├── proxy.ts                  # Supabase auth guard (redirects unauth → /login)
 │   ├── app/
 │   │   ├── page.tsx              # workspace — fragment capture + Generate
 │   │   ├── preview/page.tsx      # 4-section view + Sync-to-Notion

@@ -139,7 +139,7 @@ flowchart LR
         W["/ 工作台<br/><sub>碎片记录界面</sub>"]
         P["/preview<br/><sub>四段日记 + 同步</sub>"]
         HS["/history · /settings<br/><sub>归档 · 模板</sub>"]
-        MW["middleware.ts · Supabase 认证守卫<br/><sub>刷新 session cookie · 未登录重定向到 /login</sub>"]
+        MW["proxy.ts · Supabase 认证守卫<br/><sub>刷新 session cookie · 未登录重定向到 /login</sub>"]
         W --- P --- HS
         W --> MW
         P --> MW
@@ -211,7 +211,7 @@ npm run build  # 类型 + lint 检查（项目没有测试框架）
 ```text
 diarybuddy/                       # 仓库根 —— package.json 就在这
 ├── src/
-│   ├── middleware.ts             # Supabase 认证守卫（未登录跳 /login）
+│   ├── proxy.ts                  # Supabase 认证守卫（未登录跳 /login）
 │   ├── app/
 │   │   ├── page.tsx              # 工作台 —— 碎片记录 + 生成
 │   │   ├── preview/page.tsx      # 四段式日记 + 同步 Notion

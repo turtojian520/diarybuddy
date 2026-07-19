@@ -9,7 +9,7 @@
  * Bump CACHE_VERSION to invalidate all old caches on next install.
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE = `db-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `db-runtime-${CACHE_VERSION}`;
 
@@ -68,8 +68,15 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          // Never persist an upstream error page or an auth redirect. A single
+          // Vercel/Supabase outage should not poison future installed-PWA starts.
+          if (response.status >= 500) {
+            throw new Error(`Upstream navigation failed with ${response.status}`);
+          }
+          if (response.ok && !response.redirected && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(() =>

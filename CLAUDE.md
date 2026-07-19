@@ -54,14 +54,14 @@ TypeScript path alias: `@/*` → `./src/*` (see `tsconfig.json`).
 
 ## Architecture — the big picture
 
-### Auth boundary lives in `src/middleware.ts`
-Every request except `/login`, `/auth/callback`, and static assets is gated: the middleware calls `supabase.auth.getUser()`, refreshes the session cookie, and redirects unauthenticated users to `/login`. Because of this, **API route handlers and server actions can assume a logged-in user exists** — but they still re-check `supabase.auth.getUser()` before doing sensitive work (pattern used in `/api/generate` and `/api/export/notion`). RLS on every table also enforces per-user isolation at the DB layer.
+### Auth boundary lives in `src/proxy.ts`
+Every request except `/login`, `/auth/callback`, `/auth/signout`, and static assets is gated: the proxy calls `supabase.auth.getClaims()`, refreshes the session cookie, and redirects unauthenticated users to `/login`. Supabase fetches in the proxy have a 5-second timeout so an unavailable auth service cannot turn every page into a Vercel 504. Because of this, **API route handlers and server actions can assume a logged-in user exists** — but they still re-check `supabase.auth.getUser()` before doing sensitive work (pattern used in `/api/generate` and `/api/export/notion`). RLS on every table also enforces per-user isolation at the DB layer.
 
 ### Three Supabase client factories — don't mix them up
 - `src/lib/supabase.ts` — plain browser client for legacy/client-side reads.
 - `src/lib/supabase/browser.ts` — SSR-aware browser client.
 - `src/lib/supabase/server.ts` — `createClient()` for Server Components, Server Actions, and route handlers. Reads/writes cookies via `next/headers`.
-- `src/lib/supabase/middleware.ts` — only for `middleware.ts` (needs the `NextRequest`/`NextResponse` pair).
+- `src/lib/supabase/proxy.ts` — only for `proxy.ts` (needs the `NextRequest`/`NextResponse` pair and applies the auth fetch timeout).
 
 Server-side code should import from `@/lib/supabase/server`. All CRUD for fragments/entries/templates is centralized in `src/lib/actions.ts` (`'use server'`).
 
@@ -131,7 +131,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 /                               # repo root — package.json, tsconfig, eslint, supabase-schema.sql live here
 ├── src/
-│   ├── middleware.ts           # Supabase auth guard (redirects unauth → /login)
+│   ├── proxy.ts                # Supabase auth guard (redirects unauth → /login)
 │   ├── app/
 │   │   ├── page.tsx            # Workspace (fragment input + Generate)
 │   │   ├── history/            # Past entries list
@@ -148,7 +148,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 │       ├── crypto.ts           # AES-256-GCM + HMAC-signed state (shared key)
 │       ├── utils.ts            # getTodayDate, formatDateDisplay
 │       ├── supabase.ts         # browser client + TS types for rows
-│       ├── supabase/{browser,server,middleware}.ts
+│       ├── supabase/{browser,server,proxy}.ts
 │       └── notion/{client,markdown-to-blocks}.ts
 ├── supabase-schema.sql         # run in Supabase SQL Editor on schema changes
 └── .env.local.example
